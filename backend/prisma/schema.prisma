@@ -8,7 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model Doctor {
   id           Int      @id @default(autoincrement())
   name         String   @db.VarChar(150)
   email        String   @unique @db.VarChar(150)
@@ -23,6 +23,7 @@ model User {
   address_id   Int      @unique
 
   consultations Consultation[]
+  patients Patient[]
 }
 
 model Patient {
@@ -40,6 +41,9 @@ model Patient {
   address                 Address  @relation(fields: [address_id], references: [id])
   address_id              Int      @unique
 
+  doctor                  Doctor  @relation(fields: [doctor_id], references: [id])
+  doctor_id               Int
+
   consultations Consultation[]
 }
 
@@ -54,8 +58,8 @@ model Address {
   number       String?  @db.VarChar(30)
   createdAt    DateTime @default(now()) @map("created_at")
 
-  user         User?    @relation
-  patient      Patient? @relation
+  user         Doctor?    @relation
+  patient      Patient?   @relation
 }
 
 model Consultation {
@@ -66,12 +70,9 @@ model Consultation {
   online       Boolean  @default(false)
   createdAt    DateTime @default(now()) @map("created_at")
   
-  user         User     @relation(fields: [user_id], references: [id])
+  user         Doctor   @relation(fields: [doctor_id], references: [id])
   patient      Patient  @relation(fields: [patient_id], references: [id])
-
-  @@map("consultations")
-  user_id      Int   @unique
-  patient_id   Int   @unique
+  
+  doctor_id    Int
+  patient_id   Int
 }
-
-//TODO relation user and patient
