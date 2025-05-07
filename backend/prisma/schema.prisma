@@ -7,3 +7,71 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(150)
+  email        String   @unique @db.VarChar(150)
+  password     String   @db.VarChar(60)
+  phoneNumber  String   @map("phone_number") @db.VarChar(30)
+  dateBirth    DateTime @map("date_birth") @db.Date
+  cpf          String   @unique @db.VarChar(11)
+  crpNumber    String   @unique @map("crp_number") @db.VarChar(10)
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  address      Address  @relation(fields: [address_id], references: [id])
+  address_id   Int      @unique
+
+  consultations Consultation[]
+}
+
+model Patient {
+  id                      Int      @id @default(autoincrement())
+  name                    String   @db.VarChar(150)
+  email                   String   @unique @db.VarChar(150)
+  phoneNumber             String   @map("phone_number") @db.VarChar(30)
+  dateBirth               DateTime @map("date_birth") @db.Date
+  cpf                     String   @unique @db.VarChar(11)
+  minor                   Boolean  @default(false)
+  nameResponsible         String?  @db.VarChar(150)
+  phoneNumberResponsible  String?  @map("phone_number_responsible") @db.VarChar(30)
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  address                 Address  @relation(fields: [address_id], references: [id])
+  address_id              Int      @unique
+
+  consultations Consultation[]
+}
+
+model Address {
+  id           Int      @id @default(autoincrement())
+  cep          String   @db.VarChar(8)
+  state        String   @db.VarChar(2)
+  city         String   @db.VarChar(80)
+  street       String   @db.VarChar(150)
+  neighborhood String   @db.VarChar(150)
+  complement   String?  @db.VarChar(150)
+  number       String?  @db.VarChar(30)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user         User?    @relation
+  patient      Patient? @relation
+}
+
+model Consultation {
+  id           Int      @id @default(autoincrement())
+  day          DateTime 
+  price        Decimal
+  paid         Boolean  @default(false)
+  online       Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  user         User     @relation(fields: [user_id], references: [id])
+  patient      Patient  @relation(fields: [patient_id], references: [id])
+
+  @@map("consultations")
+  user_id      Int   @unique
+  patient_id   Int   @unique
+}
+
+//TODO relation user and patient
