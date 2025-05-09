@@ -1,6 +1,7 @@
 import { Doctor } from "../model/Doctor";
 import client from "../prismaConfig";
 import { hash } from "bcryptjs";
+import AddressService from "./AddressService";
 
 const DEFAULT_SELECT_OBJ = {
   id: true,
@@ -32,6 +33,7 @@ export default class DoctorService {
 
   async create(doctor: Doctor) {
     //todo validations
+    const idAdress = (await new AddressService().create(doctor.address)).id;
     const passwordHash = await hash(doctor.password, 8);
     const { id, consultations, patients, address, ...dataSave } = doctor;
     const data = client.doctor.create({
@@ -40,8 +42,26 @@ export default class DoctorService {
         dateBirth: new Date(doctor.dateBirth),
         password: passwordHash,
         address: {
-          connect: { id: Number(doctor.address.id) },
+          connect: { id: idAdress },
         },
+      },
+    });
+
+    return data;
+  }
+
+  async update(doctor: Doctor) {
+    //todo validations
+    const { id, consultations, patients, address, password, ...dataSave } =
+      doctor;
+    new AddressService().update(doctor.address);
+    const data = client.doctor.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        ...dataSave,
+        dateBirth: new Date(doctor.dateBirth),
       },
     });
 

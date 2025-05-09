@@ -3,13 +3,13 @@ import { Patient } from "./Patient";
 
 export interface Adress {
   id: number;
-  cep: String;
-  state: String;
-  city: String;
-  street: String;
-  neighborhood: String;
-  complement?: String;
-  number?: String;
+  cep: string;
+  state: string;
+  city: string;
+  street: string;
+  neighborhood: string;
+  complement?: string;
+  number?: string;
   user?: Doctor;
   patient?: Patient;
 }

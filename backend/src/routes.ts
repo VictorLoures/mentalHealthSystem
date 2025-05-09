@@ -8,6 +8,7 @@ routes.get("/health", (req: Request, res: Response) => {
   return res.status(200).json({ message: "OK" });
 });
 routes.post("/createDoctor", new DoctorController().create);
+routes.put("/updateDoctor", new DoctorController().update);
 routes.get("/findAllDoctors", new DoctorController().findAll);
 
 // SAFE ROUTES

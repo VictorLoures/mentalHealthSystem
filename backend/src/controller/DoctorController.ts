@@ -15,4 +15,8 @@ export default class DoctorController {
   async create(req: Request, res: Response) {
     return res.json(await new DoctorService().create(req.body));
   }
+
+  async update(req: Request, res: Response) {
+    return res.json(await new DoctorService().update(req.body));
+  }
 }

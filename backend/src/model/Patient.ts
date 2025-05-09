@@ -11,7 +11,7 @@ export interface Patient {
   cpf: string;
   minor: boolean;
   nameResponsible?: string;
-  phoneNumberResponsible?: string;
+  phoneNumberResponsible: string;
   address: Adress;
   consultations: Consultation[];
   doctor: Doctor;
