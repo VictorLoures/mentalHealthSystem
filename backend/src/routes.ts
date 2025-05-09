@@ -1,18 +1,28 @@
 import { Router, Request, Response } from "express";
 import DoctorController from "./controller/DoctorController";
 import { isAuthenticated } from "./middlewares/isAuthenticated";
+import LoginController from "./controller/LoginController";
 
 const routes = Router();
 
-routes.get("/health", (req: Request, res: Response) => {
-  return res.status(200).json({ message: "OK" });
-});
-routes.post("/createDoctor", new DoctorController().create);
-routes.put("/updateDoctor", new DoctorController().update);
+// TEST ROUTES
 routes.get("/findAllDoctors", new DoctorController().findAll);
 
-// SAFE ROUTES
+// OPEN ROUTES
+routes.post("/createDoctor", new DoctorController().create);
+routes.post("/login", new LoginController().login);
 
-routes.get("/findDoctorById", isAuthenticated, new DoctorController().findById);
+// SAFE ROUTES
+// GET
+routes.get(
+  "/findDoctorById/:idDoctor",
+  isAuthenticated,
+  new DoctorController().findById
+);
+
+// POST
+
+// PUT
+routes.put("/updateDoctor", isAuthenticated, new DoctorController().update);
 
 export { routes };
