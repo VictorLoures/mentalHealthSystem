@@ -32,7 +32,15 @@ export default class DoctorService {
   }
 
   async create(doctor: Doctor) {
-    //todo validations
+    const errors: string[] = [];
+    await validateField("email", doctor.email, "e-mail", errors);
+    await validateField("cpf", doctor.cpf, "CPF", errors);
+    await validateField("crpNumber", doctor.crpNumber, "Número do CRP", errors);
+
+    if (errors.length > 0) {
+      throw new Error(errors.join("\n"));
+    }
+
     const idAdress = (await new AddressService().create(doctor.address)).id;
     const passwordHash = await hash(doctor.password, 8);
     const { id, consultations, patients, address, ...dataSave } = doctor;
@@ -51,7 +59,12 @@ export default class DoctorService {
   }
 
   async update(doctor: Doctor) {
-    //todo validations
+    const errors: string[] = [];
+    await validateField("email", doctor.email, "e-mail", errors);
+    if (errors.length > 0) {
+      throw new Error(errors.join("\n"));
+    }
+
     const { id, consultations, patients, address, password, ...dataSave } =
       doctor;
     new AddressService().update(doctor.address);
@@ -66,5 +79,25 @@ export default class DoctorService {
     });
 
     return data;
+  }
+}
+
+async function validateField(
+  fieldBd: any,
+  field: any,
+  fieldMessage: string,
+  errors: string[]
+) {
+  const whereObj: any = {
+    [fieldBd]: field,
+  };
+  let existentDoctor = await client.doctor.findFirst({
+    where: whereObj,
+    select: {
+      id: true,
+    },
+  });
+  if (existentDoctor) {
+    errors.push(`Já existe um pisicólogo cadastrado com este ${fieldMessage}`);
   }
 }

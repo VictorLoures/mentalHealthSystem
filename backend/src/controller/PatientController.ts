@@ -17,10 +17,20 @@ export default class PatientController {
   }
 
   async create(req: Request, res: Response) {
-    return res.json(await new PatientService().create(req.body));
+    try {
+      return res.json(await new PatientService().create(req.body));
+    } catch (err) {
+      console.log(err);
+      return res.status(409).json(err.message);
+    }
   }
 
   async update(req: Request, res: Response) {
-    return res.json(await new PatientService().update(req.body));
+    try {
+      return res.json(await new PatientService().update(req.body));
+    } catch (err) {
+      console.log(err);
+      return res.status(409).json(err.message);
+    }
   }
 }

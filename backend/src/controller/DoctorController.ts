@@ -13,10 +13,19 @@ export default class DoctorController {
   }
 
   async create(req: Request, res: Response) {
-    return res.json(await new DoctorService().create(req.body));
+    try {
+      return res.json(await new DoctorService().create(req.body));
+    } catch (err) {
+      console.log(err);
+      return res.status(409).json(err.message);
+    }
   }
 
   async update(req: Request, res: Response) {
-    return res.json(await new DoctorService().update(req.body));
+    try {
+      return res.json(await new DoctorService().update(req.body));
+    } catch (err) {
+      return res.status(409).json(err.message);
+    }
   }
 }

@@ -35,7 +35,6 @@ export default class ConsultationService {
   }
 
   async create(consultation: Consultation) {
-    //todo validations
     const { id, user, patient, ...dataSave } = consultation;
     const data = client.consultation.create({
       data: {
@@ -53,7 +52,6 @@ export default class ConsultationService {
   }
 
   async update(consultation: Consultation) {
-    //todo validations
     const { id, user, patient, ...dataSave } = consultation;
     const data = client.consultation.update({
       where: {

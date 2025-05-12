@@ -34,7 +34,13 @@ export default class PatientService {
   }
 
   async create(patient: Patient) {
-    //todo validations
+    const errors: string[] = [];
+    await validateField("email", patient.email, "e-mail", errors);
+    await validateField("cpf", patient.cpf, "CPF", errors);
+    if (errors.length > 0) {
+      throw new Error(errors.join("\n"));
+    }
+
     const idAdress = (await new AddressService().create(patient.address)).id;
     const { id, address, consultations, doctor, ...dataSave } = patient;
     const data = client.patient.create({
@@ -53,7 +59,11 @@ export default class PatientService {
   }
 
   async update(patient: Patient) {
-    //todo validations
+    const errors: string[] = [];
+    await validateField("email", patient.email, "e-mail", errors);
+    if (errors.length > 0) {
+      throw new Error(errors.join("\n"));
+    }
     const { id, address, consultations, doctor, ...dataSave } = patient;
     new AddressService().update(patient.address);
     const data = client.patient.update({
@@ -67,5 +77,25 @@ export default class PatientService {
     });
 
     return data;
+  }
+}
+
+async function validateField(
+  fieldBd: any,
+  field: any,
+  fieldMessage: string,
+  errors: string[]
+) {
+  const whereObj: any = {
+    [fieldBd]: field,
+  };
+  let existentDoctor = await client.patient.findFirst({
+    where: whereObj,
+    select: {
+      id: true,
+    },
+  });
+  if (existentDoctor) {
+    errors.push(`Já existe um paciente cadastardo com este ${fieldMessage}`);
   }
 }
