@@ -3,6 +3,7 @@ import DoctorController from "./controller/DoctorController";
 import { isAuthenticated } from "./middlewares/isAuthenticated";
 import LoginController from "./controller/LoginController";
 import PatientController from "./controller/PatientController";
+import ConsultationController from "./controller/ConsultationController";
 
 const routes = Router();
 
@@ -33,11 +34,46 @@ routes.get(
   new PatientController().findByAllByDoctorId
 );
 
+routes.get(
+  "/findConsultationById/:id",
+  isAuthenticated,
+  new ConsultationController().findById
+);
+
+routes.get(
+  "/findAllByDoctorId/:idDoctor",
+  isAuthenticated,
+  new ConsultationController().findAllByDoctorId
+);
+
+routes.get(
+  "/findAllByPatientId/:idPatient",
+  isAuthenticated,
+  new ConsultationController().findAllByPatientId
+);
+
 // POST
 routes.post("/createPatient", isAuthenticated, new PatientController().create);
+routes.post(
+  "/createConsultation",
+  isAuthenticated,
+  new ConsultationController().create
+);
 
 // PUT
 routes.put("/updateDoctor", isAuthenticated, new DoctorController().update);
 routes.put("/updatePatient", isAuthenticated, new PatientController().update);
+routes.put(
+  "/updateConsultation",
+  isAuthenticated,
+  new ConsultationController().update
+);
+
+// DELETE
+routes.delete(
+  "/deleteConsultation/:id",
+  isAuthenticated,
+  new ConsultationController().delete
+);
 
 export { routes };

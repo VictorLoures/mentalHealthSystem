@@ -9,5 +9,4 @@ export interface Consultation {
   online: boolean;
   user: Doctor;
   patient: Patient;
-  patients?: Patient[];
 }
