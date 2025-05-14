@@ -8,6 +8,7 @@ import { Notifications } from "@mantine/notifications";
 
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import { LoadingProvider } from "./context/LoadingContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -17,8 +18,10 @@ root.render(
   <React.StrictMode>
     <MantineProvider>
       <AuthProvider>
-        <Notifications />
-        <AppRoutes />
+        <LoadingProvider>
+          <Notifications />
+          <AppRoutes />
+        </LoadingProvider>
       </AuthProvider>
     </MantineProvider>
   </React.StrictMode>

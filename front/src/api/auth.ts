@@ -1,10 +1,11 @@
 import api from "./api";
 import { LoggedDoctor } from "../model/LoggedDoctor";
+import { TOKEN } from "../utils/util";
 
-export const getStorageToken = () => localStorage.getItem("doctor");
+export const getStorageToken = () => localStorage.getItem(TOKEN);
 
 export const logout = () => {
-  localStorage.removeItem("doctor");
+  localStorage.removeItem(TOKEN);
 };
 
 export const validateToken = () =>
