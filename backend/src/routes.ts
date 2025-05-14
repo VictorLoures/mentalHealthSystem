@@ -52,6 +52,12 @@ routes.get(
   new ConsultationController().findAllByPatientId
 );
 
+routes.get(
+  "/token/validate",
+  isAuthenticated,
+  new LoginController().decryptToken
+);
+
 // POST
 routes.post("/createPatient", isAuthenticated, new PatientController().create);
 routes.post(

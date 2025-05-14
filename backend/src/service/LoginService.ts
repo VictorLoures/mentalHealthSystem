@@ -31,6 +31,11 @@ export default class LoginService {
       { subject: user.id.toString() }
     );
 
-    return { id: user.id, name: user.name, token };
+    return { name: user.name, email: user.email, token };
+  }
+
+  async decryptToken(token: string) {
+    const data: any = decode(token);
+    return { id: data.sub, name: data.name };
   }
 }
