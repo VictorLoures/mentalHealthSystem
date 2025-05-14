@@ -33,4 +33,9 @@ export default class LoginService {
 
     return { id: user.id, name: user.name, token };
   }
+
+  async decryptToken(token: string) {
+    const data: any = decode(token);
+    return { id: data.sub, name: data.name };
+  }
 }
