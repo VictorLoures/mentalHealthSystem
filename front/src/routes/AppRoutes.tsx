@@ -7,6 +7,7 @@ import {
 import Login from "../pages/Login";
 import PrivateRoute from "../components/PrivateRoute";
 import Dashboard from "../pages/Dashboard";
+import CreateDoctor from "../pages/CreateDoctor";
 
 const AppRoutes = () => (
   <Router>
@@ -15,6 +16,7 @@ const AppRoutes = () => (
         <Route path="/" element={<Dashboard />} />
       </Route>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<CreateDoctor />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </Router>

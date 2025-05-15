@@ -4,6 +4,7 @@ import { isAuthenticated } from "./middlewares/isAuthenticated";
 import LoginController from "./controller/LoginController";
 import PatientController from "./controller/PatientController";
 import ConsultationController from "./controller/ConsultationController";
+import CEPController from "./controller/CEPController";
 
 const routes = Router();
 
@@ -57,6 +58,8 @@ routes.get(
   isAuthenticated,
   new LoginController().decryptToken
 );
+
+routes.get("/cep/:cep", isAuthenticated, new CEPController().consultar);
 
 // POST
 routes.post("/createPatient", isAuthenticated, new PatientController().create);

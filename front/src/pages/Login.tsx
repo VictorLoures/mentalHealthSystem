@@ -6,6 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 import { showError, TOKEN } from "../utils/util";
 import { LoadingContext } from "../context/LoadingContext";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const auth = useContext(AuthContext);
@@ -67,6 +68,7 @@ const Login = () => {
       <Group justify="flex-end" mt="md">
         <Button type="submit">Login</Button>
       </Group>
+      <Link to="/register">Não possui conta? Clique aqui para criar</Link>
     </form>
   );
 };
