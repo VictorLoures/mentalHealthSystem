@@ -2,14 +2,13 @@ import { useContext, useEffect, useState } from "react";
 import {
   Button,
   Checkbox,
+  Divider,
   Group,
-  NumberInput,
   PasswordInput,
   TextInput,
 } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import api from "../api/api";
-// import { UF_ENUM_VALUES } from '../models/enum/ufEnum';
 import { IMaskInput } from "react-imask";
 import { Link, useNavigate } from "react-router-dom";
 import { LoadingContext } from "../context/LoadingContext";
@@ -23,6 +22,7 @@ import {
   showSuccess,
 } from "../utils/util";
 import { Doctor } from "../model/Doctor";
+import { Address } from "../model/Address";
 
 const IMaskInputDateWrapper = (props: any) => {
   return <IMaskInput mask="00/00/0000" {...props} />;
@@ -36,30 +36,28 @@ const IMaskInputCEPWrapper = (props: any) => {
   return <IMaskInput mask="00000-000" {...props} />;
 };
 
+const IMaskPhoneWrapper = (props: any) => {
+  return <IMaskInput mask="(00) 00000-0000" {...props} />;
+};
+
 interface ScreenFields {
   passwordConfirmation?: string;
   adressNotNumber?: boolean;
 }
 
-const fieldsRequired = [
-  "name",
-  "password",
-  "passwordConfirmation",
-  "creciNumber",
-  "creciState",
-];
+const fieldsRequired = ["name", "password", "passwordConfirmation"];
 
 const Register = () => {
-  const form = useForm<Doctor & ScreenFields>({
+  const form = useForm<Doctor & Address & ScreenFields>({
     initialValues: {
       name: "",
       email: "",
       password: "",
       passwordConfirmation: "",
+      phoneNumber: "",
       dateBirth: "",
       cpf: "",
-      creciNumber: "",
-      creciState: "",
+      crpNumber: "",
       cep: "",
       city: "",
       neighborhood: "",
@@ -67,7 +65,6 @@ const Register = () => {
       number: "",
       complement: "",
       state: "",
-      idRealtor: null,
       adressNotNumber: false,
     },
     validateInputOnBlur: true,
@@ -99,23 +96,49 @@ const Register = () => {
   }, [auth]);
 
   const handleSubmit = (values: typeof form.values) => {
-    const { passwordConfirmation, adressNotNumber, ...realtor } = values;
+    const {
+      passwordConfirmation,
+      adressNotNumber,
+      cep,
+      state,
+      city,
+      street,
+      neighborhood,
+      complement,
+      number,
+      ...doctor
+    } = values;
+
     let result = true;
-    if (passwordConfirmation !== realtor.password) {
+    if (passwordConfirmation !== doctor.password) {
       form.setFieldError("passwordConfirmation", "As senhas não conferem");
       form.setFieldError("password", "As senhas não conferem");
       result = false;
     }
 
-    if (!realtor.number && !adressNotNumber) {
+    if (!number && !adressNotNumber) {
       result = false;
     }
 
     if (result) {
-      realtor.cpf = realtor.cpf?.replace(/\D/g, "");
-      realtor.cep = realtor.cep?.replace(/\D/g, "");
+      doctor.cpf = doctor.cpf?.replace(/\D/g, "");
+      const address: Address = {
+        cep: cep?.replace(/\D/g, ""),
+        state,
+        city,
+        street,
+        neighborhood,
+        complement,
+        number,
+      };
+
+      const doctorToSend: Doctor = {
+        ...doctor,
+        address,
+      };
+
       api
-        .post("/register", realtor)
+        .post("/createDoctor", doctorToSend)
         .then(() => {
           showSuccess("Doutor cadastrado com sucesso!");
           navigate("/login");
@@ -138,7 +161,8 @@ const Register = () => {
           const { city, neighborhood, street, state } = response.data;
           form.setValues({ city, neighborhood, street, state });
         })
-        .catch(() => {
+        .catch((err) => {
+          console.log(err);
           loading?.hide();
           showError("CEP não encontrado");
           form.setValues({ city: "", neighborhood: "", street: "", state: "" });
@@ -183,6 +207,13 @@ const Register = () => {
       />
       <TextInput
         withAsterisk
+        label="Número de telefone"
+        component={IMaskPhoneWrapper}
+        key={form.key("phoneNumber")}
+        {...form.getInputProps("phoneNumber")}
+      />
+      <TextInput
+        withAsterisk
         label="Data de nascimento"
         component={IMaskInputDateWrapper}
         key={form.key("dateBirth")}
@@ -197,26 +228,15 @@ const Register = () => {
       />
       <TextInput
         withAsterisk
-        label="Número do CRECI"
-        key={form.key("creciNumber")}
-        {...form.getInputProps("creciNumber")}
+        label="Número do CRP"
+        key={form.key("crpNumber")}
+        {...form.getInputProps("crpNumber")}
         maxLength={20}
       />
-      {/* <Dropdown
-        withAsterisk
-        label="UF CRECI"
-        options={UF_ENUM_VALUES}
-        id="creciState"
-        form={form}
-      /> */}
-      <NumberInput
-        label="Id de indicação"
-        key={form.key("idRealtor")}
-        {...form.getInputProps("idRealtor")}
-        maxLength={9}
-        allowNegative={false}
-        hideControls
-      />
+
+      <h4>Endereço</h4>
+      <Divider my="md" />
+
       <TextInput
         withAsterisk
         label="CEP"
@@ -225,20 +245,18 @@ const Register = () => {
         {...form.getInputProps("cep")}
         onInput={setAdress}
       />
-      {/* <Dropdown
+      <TextInput
         withAsterisk
         label="UF"
-        options={UF_ENUM_VALUES}
-        id="state"
-        form={form}
+        key={form.key("state")}
+        {...form.getInputProps("state")}
         disabled
-      /> */}
+      />
       <TextInput
         withAsterisk
         label="Cidade"
         key={form.key("city")}
         {...form.getInputProps("city")}
-        maxLength={80}
         disabled
       />
       <TextInput
@@ -246,7 +264,6 @@ const Register = () => {
         label="Bairro"
         key={form.key("neighborhood")}
         {...form.getInputProps("neighborhood")}
-        maxLength={150}
         disabled
       />
       <TextInput
@@ -254,7 +271,6 @@ const Register = () => {
         label="Rua"
         key={form.key("street")}
         {...form.getInputProps("street")}
-        maxLength={150}
         disabled
       />
       <TextInput
@@ -280,7 +296,7 @@ const Register = () => {
       />
       <Link to="/login">Ja possui conta? Faça login</Link>
       <Group justify="flex-end" mt="md">
-        <Button type="submit">Submit</Button>
+        <Button type="submit">Cadastrar</Button>
       </Group>
     </form>
   );

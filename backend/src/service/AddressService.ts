@@ -3,7 +3,7 @@ import client from "../prismaConfig";
 
 export default class AddressService {
   async create(adress: Adress) {
-    const { id, user, patient, ...dataAdress } = adress;
+    const { ...dataAdress } = adress;
     const idAdress = client.address.create({
       data: {
         ...dataAdress,
@@ -17,7 +17,7 @@ export default class AddressService {
   }
 
   async update(adress: Adress) {
-    const { id, user, patient, ...dataAdress } = adress;
+    const { id, ...dataAdress } = adress;
     const idAdress = client.address.update({
       where: {
         id: Number(id),

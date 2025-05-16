@@ -10,6 +10,4 @@ export interface Adress {
   neighborhood: string;
   complement?: string;
   number?: string;
-  user?: Doctor;
-  patient?: Patient;
 }

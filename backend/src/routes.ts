@@ -14,6 +14,7 @@ routes.get("/findAllDoctors", new DoctorController().findAll);
 // OPEN ROUTES
 routes.post("/createDoctor", new DoctorController().create);
 routes.post("/login", new LoginController().login);
+routes.get("/cep/:cep", new CEPController().consultar);
 
 // SAFE ROUTES
 // GET
@@ -58,8 +59,6 @@ routes.get(
   isAuthenticated,
   new LoginController().decryptToken
 );
-
-routes.get("/cep/:cep", isAuthenticated, new CEPController().consultar);
 
 // POST
 routes.post("/createPatient", isAuthenticated, new PatientController().create);
