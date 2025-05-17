@@ -113,7 +113,8 @@ const CreatePatient = () => {
           navigate("/");
         })
         .catch((error) => {
-          showError(error.response.data.error);
+          console.log(error);
+          showError(error.response.data);
         });
     }
   };

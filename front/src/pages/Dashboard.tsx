@@ -19,6 +19,9 @@ const Dashboard = () => {
         Olá {auth?.loggedDoctor?.name}! - {auth?.loggedDoctor?.email}
       </p>
       <Link to="/createPatient">Cadastro de paciente</Link>
+      <br />
+      <Link to="/patients">Ver meus pacientes</Link>
+      <br />
       <Button onClick={logout}>Sair</Button>
     </div>
   );

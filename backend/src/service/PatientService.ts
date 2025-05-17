@@ -1,6 +1,7 @@
 import client from "../prismaConfig";
 import AddressService from "./AddressService";
 import { Patient } from "../model/Patient";
+import { parseDateBr } from "../util/util";
 
 const DEFAULT_SELECT_OBJ = {
   id: true,
@@ -46,7 +47,7 @@ export default class PatientService {
     const data = client.patient.create({
       data: {
         ...dataSave,
-        dateBirth: new Date(patient.dateBirth),
+        dateBirth: parseDateBr(patient.dateBirth),
         doctor: {
           connect: { id: Number(doctor.id) },
         },
@@ -72,7 +73,7 @@ export default class PatientService {
       },
       data: {
         ...dataSave,
-        dateBirth: new Date(patient.dateBirth),
+        dateBirth: parseDateBr(patient.dateBirth),
       },
     });
 

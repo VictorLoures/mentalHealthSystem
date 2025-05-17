@@ -8,7 +8,7 @@ export interface Doctor {
   email: string;
   password: string;
   phoneNumber: string;
-  dateBirth: Date;
+  dateBirth: string;
   cpf: string;
   crpNumber: string;
   address: Adress;

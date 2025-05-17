@@ -7,7 +7,7 @@ export interface Patient {
   name: string;
   email: string;
   phoneNumber: string;
-  dateBirth: Date;
+  dateBirth: string;
   cpf: string;
   minor: boolean;
   nameResponsible?: string;

@@ -2,6 +2,7 @@ import { Doctor } from "../model/Doctor";
 import client from "../prismaConfig";
 import { hash } from "bcryptjs";
 import AddressService from "./AddressService";
+import { parseDateBr } from "../util/util";
 
 const DEFAULT_SELECT_OBJ = {
   id: true,
@@ -47,7 +48,7 @@ export default class DoctorService {
     const data = client.doctor.create({
       data: {
         ...dataSave,
-        dateBirth: new Date(doctor.dateBirth),
+        dateBirth: parseDateBr(doctor.dateBirth),
         password: passwordHash,
         address: {
           connect: { id: idAdress },
@@ -74,7 +75,7 @@ export default class DoctorService {
       },
       data: {
         ...dataSave,
-        dateBirth: new Date(doctor.dateBirth),
+        dateBirth: parseDateBr(doctor.dateBirth),
       },
     });
 

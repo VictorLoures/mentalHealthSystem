@@ -129,7 +129,7 @@ const Register = () => {
           navigate("/login");
         })
         .catch((error) => {
-          showError(error.response.data.error);
+          showError(error.response.data);
         });
     }
   };

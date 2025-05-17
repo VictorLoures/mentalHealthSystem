@@ -9,6 +9,7 @@ import PrivateRoute from "../components/PrivateRoute";
 import Dashboard from "../pages/Dashboard";
 import CreateDoctor from "../pages/CreateDoctor";
 import CreatePatient from "../pages/CreatePatient";
+import PatientList from "../pages/PatientList";
 
 const AppRoutes = () => (
   <Router>
@@ -16,6 +17,7 @@ const AppRoutes = () => (
       <Route element={<PrivateRoute />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/createPatient" element={<CreatePatient />} />
+        <Route path="/patients" element={<PatientList />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<CreateDoctor />} />
