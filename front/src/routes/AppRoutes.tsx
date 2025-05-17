@@ -8,12 +8,14 @@ import Login from "../pages/Login";
 import PrivateRoute from "../components/PrivateRoute";
 import Dashboard from "../pages/Dashboard";
 import CreateDoctor from "../pages/CreateDoctor";
+import CreatePatient from "../pages/CreatePatient";
 
 const AppRoutes = () => (
   <Router>
     <Routes>
       <Route element={<PrivateRoute />}>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/createPatient" element={<CreatePatient />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<CreateDoctor />} />

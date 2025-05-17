@@ -1,10 +1,8 @@
-import { useContext, useEffect } from "react";
-import { Button, Group, PasswordInput, TextInput } from "@mantine/core";
+import { Button, Checkbox, Group, TextInput } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import api from "../api/api";
 import { IMaskInput } from "react-imask";
-import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   CAMPO_OBRIGATORIO,
   isOver18,
@@ -12,9 +10,11 @@ import {
   showError,
   showSuccess,
 } from "../utils/util";
-import { Doctor } from "../model/Doctor";
 import { Address } from "../model/Address";
 import AddressComponent from "../components/AddressComponent";
+import { Patient } from "../model/Patient";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 const IMaskInputDateWrapper = (props: any) => {
   return <IMaskInput mask="00/00/0000" {...props} />;
@@ -29,23 +29,20 @@ const IMaskPhoneWrapper = (props: any) => {
 };
 
 interface ScreenFields {
-  passwordConfirmation?: string;
   adressNotNumber?: boolean;
 }
 
-const fieldsRequired = ["name", "password", "passwordConfirmation"];
-
-const Register = () => {
-  const form = useForm<Doctor & Address & ScreenFields>({
+const CreatePatient = () => {
+  const form = useForm<Patient & Address & ScreenFields>({
     initialValues: {
       name: "",
       email: "",
-      password: "",
-      passwordConfirmation: "",
       phoneNumber: "",
       dateBirth: "",
+      minor: false,
+      nameResponsible: "",
+      phoneNumberResponsible: "",
       cpf: "",
-      crpNumber: "",
       cep: "",
       city: "",
       neighborhood: "",
@@ -58,31 +55,21 @@ const Register = () => {
     validateInputOnBlur: true,
     mode: "controlled",
     validate: {
+      name: isNotEmpty(CAMPO_OBRIGATORIO),
       email: (value: any) =>
         value && (/^\S+@\S+$/.test(value) ? null : "E-mail inválido"),
       cpf: (value: any) => (value && isValidCPF(value) ? null : "CPF inválido"),
       cep: (value: any) => (value?.length === 9 ? null : CAMPO_OBRIGATORIO),
       dateBirth: (value: any) =>
         value && isOver18(value) ? null : "Você deve ter mais de 18 anos",
-      ...fieldsRequired.reduce((acc, field) => {
-        acc[field] = isNotEmpty(CAMPO_OBRIGATORIO);
-        return acc;
-      }, {} as Record<string, ReturnType<typeof isNotEmpty>>),
     },
   });
 
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
 
-  useEffect(() => {
-    if (auth?.loggedDoctor) {
-      navigate("/");
-    } // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auth]);
-
   const handleSubmit = (values: typeof form.values) => {
     const {
-      passwordConfirmation,
       adressNotNumber,
       cep,
       state,
@@ -91,22 +78,16 @@ const Register = () => {
       neighborhood,
       complement,
       number,
-      ...doctor
+      ...patient
     } = values;
 
     let result = true;
-    if (passwordConfirmation !== doctor.password) {
-      form.setFieldError("passwordConfirmation", "As senhas não conferem");
-      form.setFieldError("password", "As senhas não conferem");
-      result = false;
-    }
-
     if (!number && !adressNotNumber) {
       result = false;
     }
 
     if (result) {
-      doctor.cpf = doctor.cpf?.replace(/\D/g, "");
+      patient.cpf = patient.cpf?.replace(/\D/g, "");
       const address: Address = {
         cep: cep?.replace(/\D/g, ""),
         state,
@@ -117,16 +98,19 @@ const Register = () => {
         number,
       };
 
-      const doctorToSend: Doctor = {
-        ...doctor,
+      const patientToSend: Patient = {
+        ...patient,
+        doctor: {
+          id: auth?.loggedDoctor?.id,
+        },
         address,
       };
 
       api
-        .post("/createDoctor", doctorToSend)
+        .post("/createPatient", patientToSend)
         .then(() => {
-          showSuccess("Doutor cadastrado com sucesso!");
-          navigate("/login");
+          showSuccess("Paciente cadastrado com sucesso!");
+          navigate("/");
         })
         .catch((error) => {
           showError(error.response.data.error);
@@ -136,7 +120,7 @@ const Register = () => {
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <h4>Cadastro de psicólogo</h4>
+      <h4>Cadastro de paciente</h4>
       <TextInput
         withAsterisk
         label="Nome completo"
@@ -150,20 +134,6 @@ const Register = () => {
         key={form.key("email")}
         {...form.getInputProps("email")}
         maxLength={150}
-      />
-      <PasswordInput
-        withAsterisk
-        label="Senha"
-        key={form.key("password")}
-        {...form.getInputProps("password")}
-        maxLength={50}
-      />
-      <PasswordInput
-        withAsterisk
-        label="Confirmar senha"
-        key={form.key("passwordConfirmation")}
-        {...form.getInputProps("passwordConfirmation")}
-        maxLength={50}
       />
       <TextInput
         withAsterisk
@@ -186,21 +156,36 @@ const Register = () => {
         key={form.key("cpf")}
         {...form.getInputProps("cpf")}
       />
+      <Checkbox
+        mt="md"
+        label="Paciente menor de idade"
+        key={form.key("minor")}
+        {...form.getInputProps("minor", { type: "checkbox" })}
+      />
       <TextInput
-        withAsterisk
-        label="Número do CRP"
-        key={form.key("crpNumber")}
-        {...form.getInputProps("crpNumber")}
-        maxLength={20}
+        label="Nome completo do responsável"
+        key={form.key("nameResponsible")}
+        {...form.getInputProps("nameResponsible")}
+        maxLength={150}
+        disabled={!form.values.minor}
+      />
+      <TextInput
+        label="Número de telefone do responsável"
+        component={IMaskPhoneWrapper}
+        key={form.key("phoneNumberResponsible")}
+        {...form.getInputProps("phoneNumberResponsible")}
+        disabled={!form.values.minor}
       />
 
       <AddressComponent form={form} />
-      <Link to="/login">Ja possui conta? Faça login</Link>
       <Group justify="flex-end" mt="md">
+        <Button color="red" onClick={() => navigate("/")}>
+          Cancelar
+        </Button>
         <Button type="submit">Cadastrar</Button>
       </Group>
     </form>
   );
 };
 
-export default Register;
+export default CreatePatient;
