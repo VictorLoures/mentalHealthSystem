@@ -4,6 +4,7 @@ import { isAuthenticated } from "./middlewares/isAuthenticated";
 import LoginController from "./controller/LoginController";
 import PatientController from "./controller/PatientController";
 import ConsultationController from "./controller/ConsultationController";
+import CEPController from "./controller/CEPController";
 
 const routes = Router();
 
@@ -13,6 +14,7 @@ routes.get("/findAllDoctors", new DoctorController().findAll);
 // OPEN ROUTES
 routes.post("/createDoctor", new DoctorController().create);
 routes.post("/login", new LoginController().login);
+routes.get("/cep/:cep", new CEPController().consultar);
 
 // SAFE ROUTES
 // GET

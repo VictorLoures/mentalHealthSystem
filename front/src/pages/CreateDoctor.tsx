@@ -1,0 +1,206 @@
+import { useContext, useEffect } from "react";
+import { Button, Group, PasswordInput, TextInput } from "@mantine/core";
+import { isNotEmpty, useForm } from "@mantine/form";
+import api from "../api/api";
+import { IMaskInput } from "react-imask";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import {
+  CAMPO_OBRIGATORIO,
+  isOver18,
+  isValidCPF,
+  showError,
+  showSuccess,
+} from "../utils/util";
+import { Doctor } from "../model/Doctor";
+import { Address } from "../model/Address";
+import AddressComponent from "../components/AddressComponent";
+
+const IMaskInputDateWrapper = (props: any) => {
+  return <IMaskInput mask="00/00/0000" {...props} />;
+};
+
+const IMaskInputCPFWrapper = (props: any) => {
+  return <IMaskInput mask="000.000.000-00" {...props} />;
+};
+
+const IMaskPhoneWrapper = (props: any) => {
+  return <IMaskInput mask="(00) 00000-0000" {...props} />;
+};
+
+interface ScreenFields {
+  passwordConfirmation?: string;
+  adressNotNumber?: boolean;
+}
+
+const fieldsRequired = ["name", "password", "passwordConfirmation"];
+
+const Register = () => {
+  const form = useForm<Doctor & Address & ScreenFields>({
+    initialValues: {
+      name: "",
+      email: "",
+      password: "",
+      passwordConfirmation: "",
+      phoneNumber: "",
+      dateBirth: "",
+      cpf: "",
+      crpNumber: "",
+      cep: "",
+      city: "",
+      neighborhood: "",
+      street: "",
+      number: "",
+      complement: "",
+      state: "",
+      adressNotNumber: false,
+    },
+    validateInputOnBlur: true,
+    mode: "controlled",
+    validate: {
+      email: (value: any) =>
+        value && (/^\S+@\S+$/.test(value) ? null : "E-mail inválido"),
+      cpf: (value: any) => (value && isValidCPF(value) ? null : "CPF inválido"),
+      cep: (value: any) => (value?.length === 9 ? null : CAMPO_OBRIGATORIO),
+      dateBirth: (value: any) =>
+        value && isOver18(value) ? null : "Você deve ter mais de 18 anos",
+      ...fieldsRequired.reduce((acc, field) => {
+        acc[field] = isNotEmpty(CAMPO_OBRIGATORIO);
+        return acc;
+      }, {} as Record<string, ReturnType<typeof isNotEmpty>>),
+    },
+  });
+
+  const navigate = useNavigate();
+  const auth = useContext(AuthContext);
+
+  useEffect(() => {
+    if (auth?.loggedDoctor) {
+      navigate("/");
+    } // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth]);
+
+  const handleSubmit = (values: typeof form.values) => {
+    const {
+      passwordConfirmation,
+      adressNotNumber,
+      cep,
+      state,
+      city,
+      street,
+      neighborhood,
+      complement,
+      number,
+      ...doctor
+    } = values;
+
+    let result = true;
+    if (passwordConfirmation !== doctor.password) {
+      form.setFieldError("passwordConfirmation", "As senhas não conferem");
+      form.setFieldError("password", "As senhas não conferem");
+      result = false;
+    }
+
+    if (!number && !adressNotNumber) {
+      result = false;
+    }
+
+    if (result) {
+      doctor.cpf = doctor.cpf?.replace(/\D/g, "");
+      const address: Address = {
+        cep: cep?.replace(/\D/g, ""),
+        state,
+        city,
+        street,
+        neighborhood,
+        complement,
+        number,
+      };
+
+      const doctorToSend: Doctor = {
+        ...doctor,
+        address,
+      };
+
+      api
+        .post("/createDoctor", doctorToSend)
+        .then(() => {
+          showSuccess("Doutor cadastrado com sucesso!");
+          navigate("/login");
+        })
+        .catch((error) => {
+          showError(error.response.data);
+        });
+    }
+  };
+
+  return (
+    <form onSubmit={form.onSubmit(handleSubmit)}>
+      <h4>Cadastro de psicólogo</h4>
+      <TextInput
+        withAsterisk
+        label="Nome completo"
+        key={form.key("name")}
+        {...form.getInputProps("name")}
+        maxLength={150}
+      />
+      <TextInput
+        withAsterisk
+        label="Email"
+        key={form.key("email")}
+        {...form.getInputProps("email")}
+        maxLength={150}
+      />
+      <PasswordInput
+        withAsterisk
+        label="Senha"
+        key={form.key("password")}
+        {...form.getInputProps("password")}
+        maxLength={50}
+      />
+      <PasswordInput
+        withAsterisk
+        label="Confirmar senha"
+        key={form.key("passwordConfirmation")}
+        {...form.getInputProps("passwordConfirmation")}
+        maxLength={50}
+      />
+      <TextInput
+        withAsterisk
+        label="Número de telefone"
+        component={IMaskPhoneWrapper}
+        key={form.key("phoneNumber")}
+        {...form.getInputProps("phoneNumber")}
+      />
+      <TextInput
+        withAsterisk
+        label="Data de nascimento"
+        component={IMaskInputDateWrapper}
+        key={form.key("dateBirth")}
+        {...form.getInputProps("dateBirth")}
+      />
+      <TextInput
+        withAsterisk
+        label="CPF"
+        component={IMaskInputCPFWrapper}
+        key={form.key("cpf")}
+        {...form.getInputProps("cpf")}
+      />
+      <TextInput
+        withAsterisk
+        label="Número do CRP"
+        key={form.key("crpNumber")}
+        {...form.getInputProps("crpNumber")}
+        maxLength={20}
+      />
+
+      <AddressComponent form={form} />
+      <Link to="/login">Ja possui conta? Faça login</Link>
+      <Group justify="flex-end" mt="md">
+        <Button type="submit">Cadastrar</Button>
+      </Group>
+    </form>
+  );
+};
+
+export default Register;
