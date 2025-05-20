@@ -26,9 +26,9 @@ export default class DoctorService {
   }
 
   async findById(idDoctor: number) {
-    return client.doctor.findMany({
+    return client.doctor.findFirst({
       where: { id: idDoctor },
-      select: DEFAULT_SELECT_OBJ,
+      select: { ...DEFAULT_SELECT_OBJ, patients: false, consultations: false },
     });
   }
 
@@ -61,22 +61,37 @@ export default class DoctorService {
 
   async update(doctor: Doctor) {
     const errors: string[] = [];
-    await validateField("email", doctor.email, "e-mail", errors);
+    const { id, consultations, patients, address, password, ...dataSave } =
+      doctor;
+    const idDoctor = Number(id);
+    await validateField(
+      "email",
+      doctor.email,
+      "e-mail",
+      errors,
+      true,
+      idDoctor
+    );
+    await validateField("cpf", doctor.cpf, "CPF", errors, true, idDoctor);
     if (errors.length > 0) {
       throw new Error(errors.join("\n"));
     }
 
-    const { id, consultations, patients, address, password, ...dataSave } =
-      doctor;
+    const dataToPersist: any = {
+      ...dataSave,
+      dateBirth: parseDateBr(doctor.dateBirth),
+    };
+    if (password) {
+      const passwordHash = await hash(doctor.password, 8);
+      dataToPersist.password = passwordHash;
+    }
+
     new AddressService().update(doctor.address);
     const data = client.doctor.update({
       where: {
-        id: Number(id),
+        id: idDoctor,
       },
-      data: {
-        ...dataSave,
-        dateBirth: parseDateBr(doctor.dateBirth),
-      },
+      data: dataToPersist,
     });
 
     return data;
@@ -87,11 +102,18 @@ async function validateField(
   fieldBd: any,
   field: any,
   fieldMessage: string,
-  errors: string[]
+  errors: string[],
+  isEdit: boolean = false,
+  id: number = null
 ) {
   const whereObj: any = {
     [fieldBd]: field,
   };
+  if (isEdit && id) {
+    whereObj.id = {
+      not: id,
+    };
+  }
   let existentDoctor = await client.doctor.findFirst({
     where: whereObj,
     select: {

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { LoadingContext } from "../context/LoadingContext";
+import { formatDate } from "../utils/util";
 
 const PatientList = () => {
   const navigate = useNavigate();
@@ -28,12 +29,6 @@ const PatientList = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const formatDate = (isoDate: string): string => {
-    return new Date(isoDate).toLocaleDateString("pt-BR", {
-      timeZone: "UTC",
-    });
-  };
 
   return (
     <>

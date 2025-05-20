@@ -21,7 +21,7 @@ const DEFAULT_SELECT_OBJ = {
 
 export default class PatientService {
   async findById(idPatient: number) {
-    return client.patient.findMany({
+    return client.patient.findFirst({
       where: { id: idPatient },
       select: DEFAULT_SELECT_OBJ,
     });

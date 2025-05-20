@@ -14,7 +14,7 @@ const DEFAULT_SELECT_OBJ = {
 
 export default class ConsultationService {
   async findById(idConsultation: number) {
-    return client.consultation.findMany({
+    return client.consultation.findFirst({
       where: { id: idConsultation },
       select: DEFAULT_SELECT_OBJ,
     });

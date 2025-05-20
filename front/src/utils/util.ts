@@ -64,3 +64,13 @@ export const showError = (title: string) => {
     position: "top-right",
   });
 };
+
+export const formatDate = (isoDate: string): string => {
+  return new Date(isoDate).toLocaleDateString("pt-BR", {
+    timeZone: "UTC",
+  });
+};
+
+export const formatCep = (cep: string) => {
+  return `${cep.substring(0, 5)}-${cep.substring(5, 8)}`;
+};

@@ -22,6 +22,8 @@ const Dashboard = () => {
       <br />
       <Link to="/patients">Ver meus pacientes</Link>
       <br />
+      <Link to={`editDoctor/${auth?.loggedDoctor?.id}`}>Editar usuário</Link>
+      <br />
       <Button onClick={logout}>Sair</Button>
     </div>
   );
