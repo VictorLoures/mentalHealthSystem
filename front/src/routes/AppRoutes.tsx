@@ -19,6 +19,7 @@ const AppRoutes = () => (
         <Route path="/createPatient" element={<CreatePatient />} />
         <Route path="/patients" element={<PatientList />} />
         <Route path="/editDoctor/:id" element={<CreateDoctor />} />
+        <Route path="/editPatient/:id" element={<CreatePatient />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<CreateDoctor />} />

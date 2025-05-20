@@ -2,9 +2,11 @@ import { Button, Checkbox, Group, TextInput } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import api from "../api/api";
 import { IMaskInput } from "react-imask";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   CAMPO_OBRIGATORIO,
+  formatCep,
+  formatDate,
   isOver18,
   isValidCPF,
   showError,
@@ -13,7 +15,7 @@ import {
 import { Address } from "../model/Address";
 import AddressComponent from "../components/AddressComponent";
 import { Patient } from "../model/Patient";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 const IMaskInputDateWrapper = (props: any) => {
@@ -30,6 +32,7 @@ const IMaskPhoneWrapper = (props: any) => {
 
 interface ScreenFields {
   adressNotNumber?: boolean;
+  idAdress?: string;
 }
 
 const CreatePatient = () => {
@@ -67,6 +70,37 @@ const CreatePatient = () => {
 
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
+  const { id } = useParams();
+
+  useEffect(() => {
+    if (id) {
+      api.get(`/findPatientById/${id}`).then((response) => {
+        if (response.data) {
+          const data = response.data;
+
+          form.setValues({
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            dateBirth: formatDate(data.dateBirth),
+            cpf: data.cpf,
+            idAdress: data.address?.id ?? "",
+            cep: data.address?.cep ? formatCep(data.address.cep) : "",
+            city: data.address?.city ?? "",
+            neighborhood: data.address?.neighborhood ?? "",
+            street: data.address?.street ?? "",
+            number: data.address?.number ?? "",
+            complement: data.address?.complement ?? "",
+            state: data.address?.state ?? "",
+            adressNotNumber: !data.address?.number,
+          });
+        } else {
+          showError("Ocorreu um erro inesperado!");
+        }
+      });
+    } // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = (values: typeof form.values) => {
     const {
@@ -78,6 +112,8 @@ const CreatePatient = () => {
       neighborhood,
       complement,
       number,
+      idAdress,
+      id: idPatient,
       ...patient
     } = values;
 
@@ -106,22 +142,55 @@ const CreatePatient = () => {
         address,
       };
 
-      api
-        .post("/createPatient", patientToSend)
-        .then(() => {
-          showSuccess("Paciente cadastrado com sucesso!");
-          navigate("/");
-        })
-        .catch((error) => {
-          console.log(error);
-          showError(error.response.data);
-        });
+      if (id) {
+        if (patientToSend && patientToSend.address) {
+          patientToSend.address.id = idAdress;
+        }
+        patientToSend.id = idPatient;
+        api
+          .put("/updatePatient", patientToSend)
+          .then(() => {
+            showSuccess("Paciente atualizado com sucesso!");
+            navigate("/patients");
+          })
+          .catch((error) => {
+            showError(error.response.data);
+          });
+      } else {
+        api
+          .post("/createPatient", patientToSend)
+          .then(() => {
+            showSuccess("Paciente cadastrado com sucesso!");
+            navigate("/");
+          })
+          .catch((error) => {
+            showError(error.response.data);
+          });
+      }
     }
   };
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <h4>Cadastro de paciente</h4>
+      <div style={{ display: "none" }}>
+        <TextInput
+          withAsterisk
+          label="id"
+          key={form.key("id")}
+          {...form.getInputProps("id")}
+          maxLength={150}
+        />
+      </div>
+      <div style={{ display: "none" }}>
+        <TextInput
+          withAsterisk
+          label="id"
+          key={form.key("idAdress")}
+          {...form.getInputProps("idAdress")}
+          maxLength={150}
+        />
+      </div>
       <TextInput
         withAsterisk
         label="Nome completo"
@@ -180,7 +249,7 @@ const CreatePatient = () => {
 
       <AddressComponent form={form} />
       <Group justify="flex-end" mt="md">
-        <Button color="red" onClick={() => navigate("/")}>
+        <Button color="red" onClick={() => navigate("/patients")}>
           Cancelar
         </Button>
         <Button type="submit">Cadastrar</Button>

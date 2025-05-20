@@ -18,8 +18,6 @@ const Dashboard = () => {
       <p>
         Olá {auth?.loggedDoctor?.name}! - {auth?.loggedDoctor?.email}
       </p>
-      <Link to="/createPatient">Cadastro de paciente</Link>
-      <br />
       <Link to="/patients">Ver meus pacientes</Link>
       <br />
       <Link to={`editDoctor/${auth?.loggedDoctor?.id}`}>Editar usuário</Link>

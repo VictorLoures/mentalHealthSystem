@@ -86,7 +86,6 @@ const Register = () => {
       api.get(`/findDoctorById/${id}`).then((response) => {
         if (response.data) {
           const data = response.data;
-          console.log(data.address.cep);
 
           form.setValues({
             id: data.id,
