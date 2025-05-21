@@ -17,6 +17,7 @@ import AddressComponent from "../components/AddressComponent";
 import { Patient } from "../model/Patient";
 import { useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { create, update } from "../api/api.uti";
 
 const IMaskInputDateWrapper = (props: any) => {
   return <IMaskInput mask="00/00/0000" {...props} />;
@@ -147,25 +148,21 @@ const CreatePatient = () => {
           patientToSend.address.id = idAdress;
         }
         patientToSend.id = idPatient;
-        api
-          .put("/updatePatient", patientToSend)
-          .then(() => {
-            showSuccess("Paciente atualizado com sucesso!");
-            navigate("/patients");
-          })
-          .catch((error) => {
-            showError(error.response.data);
-          });
+        update(
+          "/updatePatient",
+          patientToSend,
+          "Paciente atualizado com sucesso!",
+          navigate,
+          "patients"
+        );
       } else {
-        api
-          .post("/createPatient", patientToSend)
-          .then(() => {
-            showSuccess("Paciente cadastrado com sucesso!");
-            navigate("/");
-          })
-          .catch((error) => {
-            showError(error.response.data);
-          });
+        create(
+          "/createPatient",
+          patientToSend,
+          "Paciente cadastrado com sucesso!",
+          navigate,
+          "patients"
+        );
       }
     }
   };
@@ -252,7 +249,7 @@ const CreatePatient = () => {
         <Button color="red" onClick={() => navigate("/patients")}>
           Cancelar
         </Button>
-        <Button type="submit">Cadastrar</Button>
+        <Button type="submit">{!id ? "Cadastrar" : "Salvar"}</Button>
       </Group>
     </form>
   );

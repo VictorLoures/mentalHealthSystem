@@ -1,5 +1,6 @@
 import client from "../prismaConfig";
 import { Consultation } from "../model/Consultation";
+import { parseDateAndHourBr } from "../util/util";
 
 const DEFAULT_SELECT_OBJ = {
   id: true,
@@ -14,32 +15,38 @@ const DEFAULT_SELECT_OBJ = {
 
 export default class ConsultationService {
   async findById(idConsultation: number) {
-    return client.consultation.findFirst({
+    const data = await client.consultation.findFirst({
       where: { id: idConsultation },
       select: DEFAULT_SELECT_OBJ,
     });
+    formatHourSelect(data);
+    return data;
   }
 
   async findAllByDoctorId(idDoctor: number) {
-    return client.consultation.findMany({
+    const data = await client.consultation.findMany({
       where: { doctor_id: idDoctor },
       select: DEFAULT_SELECT_OBJ,
     });
+    formatHourSelect(data);
+    return data;
   }
 
   async findAllByPatientId(idPatient: number) {
-    return client.consultation.findMany({
+    const data = await client.consultation.findMany({
       where: { patient_id: idPatient },
       select: DEFAULT_SELECT_OBJ,
     });
+    formatHourSelect(data);
+    return data;
   }
 
   async create(consultation: Consultation) {
     const { id, user, patient, ...dataSave } = consultation;
-    const data = client.consultation.create({
+    const data = await client.consultation.create({
       data: {
         ...dataSave,
-        day: new Date(consultation.day),
+        day: parseDateAndHourBr(consultation.day),
         user: {
           connect: { id: Number(user.id) },
         },
@@ -48,20 +55,22 @@ export default class ConsultationService {
         },
       },
     });
+    formatHourSelect(data);
     return data;
   }
 
   async update(consultation: Consultation) {
     const { id, user, patient, ...dataSave } = consultation;
-    const data = client.consultation.update({
+    const data = await client.consultation.update({
       where: {
         id: Number(id),
       },
       data: {
         ...dataSave,
-        day: new Date(consultation.day),
+        day: parseDateAndHourBr(consultation.day),
       },
     });
+    formatHourSelect(data);
     return data;
   }
 
@@ -71,3 +80,11 @@ export default class ConsultationService {
     });
   }
 }
+
+const formatHourSelect = (data: any) => {
+  if (data && data.length > 0) {
+    data.forEach((it) => {
+      it.day = it.day.toLocaleString();
+    });
+  }
+};

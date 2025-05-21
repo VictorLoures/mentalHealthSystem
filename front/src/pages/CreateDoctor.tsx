@@ -17,6 +17,7 @@ import {
 import { Doctor } from "../model/Doctor";
 import { Address } from "../model/Address";
 import AddressComponent from "../components/AddressComponent";
+import { create, update } from "../api/api.uti";
 
 const IMaskInputDateWrapper = (props: any) => {
   return <IMaskInput mask="00/00/0000" {...props} />;
@@ -169,30 +170,25 @@ const Register = () => {
           doctorToSend.address.id = idAdress;
         }
         doctorToSend.id = idDoctor;
-        api
-          .put("/updateDoctor", doctorToSend)
-          .then(() => {
-            showSuccess("Doutor atualizado com sucesso!");
-            navigate("/");
-          })
-          .catch((error) => {
-            showError(error.response.data);
-          });
+        update(
+          "/updateDoctor",
+          doctorToSend,
+          "Doutor atualizado com sucesso!",
+          navigate
+        );
         auth?.setLoggedDoctor({
           id: idDoctor,
           name: doctor.name,
           email: doctor.email,
         });
       } else {
-        api
-          .post("/createDoctor", doctorToSend)
-          .then(() => {
-            showSuccess("Doutor cadastrado com sucesso!");
-            navigate("/login");
-          })
-          .catch((error) => {
-            showError(error.response.data);
-          });
+        create(
+          "/createDoctor",
+          doctorToSend,
+          "Doutor cadastrado com sucesso!",
+          navigate,
+          "/login"
+        );
       }
     }
   };

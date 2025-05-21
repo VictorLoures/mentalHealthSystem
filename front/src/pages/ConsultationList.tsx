@@ -4,58 +4,62 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { LoadingContext } from "../context/LoadingContext";
-import { formatDate } from "../utils/util";
+import { formatDateWhitHour, formatToBRL } from "../utils/util";
 import { IconPencil } from "@tabler/icons-react";
 
-const PatientList = () => {
+const ConsultationList = () => {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
   const loading = useContext(LoadingContext);
 
-  const [patients, setPatients] = useState([]);
+  const [consultations, setConsultatios] = useState([]);
 
   useEffect(() => {
     if (auth?.loggedDoctor?.id) {
       loading?.show();
       api
-        .get(`/findByAllByDoctorId/${auth?.loggedDoctor?.id}`)
+        .get(`/findAllByDoctorId/${auth?.loggedDoctor?.id}`)
         .then((response) => {
           loading?.hide();
-          setPatients(response.data);
+          setConsultatios(response.data);
         })
         .catch(() => loading?.hide());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updatePatient = (id: string) => {
+  const updateConsultation = (id: string) => {
     if (id) {
-      navigate(`/editPatient/${id}`);
+      navigate(`/editConsultation/${id}`);
     }
   };
 
+  const formatBooleanColumn = (value: boolean) => (value ? "Sim" : "Não");
+
   return (
     <>
-      <h3>Seus pacientes</h3>
-      {patients && patients.length > 0 && (
+      <h3>Suas consultas</h3>
+      {consultations && consultations.length > 0 && (
         <Table>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>Nome</Table.Th>
-              <Table.Th>Email</Table.Th>
-              <Table.Th>Telefone</Table.Th>
-              <Table.Th>Data de nascimento</Table.Th>
+              <Table.Th>Paciente</Table.Th>
+              <Table.Th>Dia e hora</Table.Th>
+              <Table.Th>Preço</Table.Th>
+              <Table.Th>Já foi Pago?</Table.Th>
+              <Table.Th>É presencial?</Table.Th>
               <Table.Th>Ações</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {patients.map((it: any) => {
+            {consultations.map((it: any) => {
               return (
                 <Table.Tr key={it.id}>
-                  <Table.Td>{it.name}</Table.Td>
-                  <Table.Td>{it.email}</Table.Td>
-                  <Table.Td>{it.phoneNumber}</Table.Td>
-                  <Table.Td>{formatDate(it.dateBirth)}</Table.Td>
+                  <Table.Td>{it.patient.name}</Table.Td>
+                  <Table.Td>{formatDateWhitHour(it.day)}</Table.Td>
+                  <Table.Td>{formatToBRL(it.price)}</Table.Td>
+                  <Table.Td>{formatBooleanColumn(it.paid)}</Table.Td>
+                  <Table.Td>{formatBooleanColumn(it.online)}</Table.Td>
                   <Table.Td>
                     <div style={{ display: "flex", gap: "5px" }}>
                       <ActionIcon
@@ -66,7 +70,7 @@ const PatientList = () => {
                         <IconPencil
                           style={{ width: "70%", height: "70%" }}
                           stroke={1.5}
-                          onClick={() => updatePatient(it.id)}
+                          onClick={() => updateConsultation(it.id)}
                         />
                       </ActionIcon>
                     </div>
@@ -77,10 +81,10 @@ const PatientList = () => {
           </Table.Tbody>
         </Table>
       )}
-      {!patients ||
-        (patients.length <= 0 && <h3>Você não possui pacientes</h3>)}
+      {!consultations ||
+        (consultations.length <= 0 && <h3>Você não possui consultas</h3>)}
       <Group justify="flex-end" mt="md">
-        <Button color="green" onClick={() => navigate("/createPatient")}>
+        <Button color="green" onClick={() => navigate("/createConsultation")}>
           Incluir
         </Button>
         <Button color="red" onClick={() => navigate("/")}>
@@ -91,4 +95,4 @@ const PatientList = () => {
   );
 };
 
-export default PatientList;
+export default ConsultationList;

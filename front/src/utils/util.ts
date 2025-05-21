@@ -71,6 +71,17 @@ export const formatDate = (isoDate: string): string => {
   });
 };
 
+export const formatDateWhitHour = (dateStr: string): string => {
+  return dateStr.replace(",", " às");
+};
+
 export const formatCep = (cep: string) => {
   return `${cep.substring(0, 5)}-${cep.substring(5, 8)}`;
+};
+
+export const formatToBRL = (value: number): string => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
 };
