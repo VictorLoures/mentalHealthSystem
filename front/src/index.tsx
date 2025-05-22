@@ -11,6 +11,7 @@ import { DatesProvider } from "@mantine/dates";
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dates/styles.css";
+import { ModalsProvider } from "@mantine/modals";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -19,14 +20,16 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <MantineProvider>
-      <DatesProvider settings={{ locale: "pt-BR" }}>
-        <AuthProvider>
-          <LoadingProvider>
-            <Notifications />
-            <AppRoutes />
-          </LoadingProvider>
-        </AuthProvider>
-      </DatesProvider>
+      <ModalsProvider>
+        <DatesProvider settings={{ locale: "pt-BR" }}>
+          <AuthProvider>
+            <LoadingProvider>
+              <Notifications />
+              <AppRoutes />
+            </LoadingProvider>
+          </AuthProvider>
+        </DatesProvider>
+      </ModalsProvider>
     </MantineProvider>
   </React.StrictMode>
 );

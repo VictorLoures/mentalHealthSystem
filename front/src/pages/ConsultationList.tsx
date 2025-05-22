@@ -4,34 +4,60 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { LoadingContext } from "../context/LoadingContext";
-import { formatDateWhitHour, formatToBRL } from "../utils/util";
-import { IconPencil } from "@tabler/icons-react";
+import { formatDateWhitHour, formatToBRL, showSuccess } from "../utils/util";
+import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { modals } from "@mantine/modals";
 
 const ConsultationList = () => {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
   const loading = useContext(LoadingContext);
 
-  const [consultations, setConsultatios] = useState([]);
+  const [consultations, setConsultations] = useState([]);
 
   useEffect(() => {
     if (auth?.loggedDoctor?.id) {
-      loading?.show();
-      api
-        .get(`/findAllByDoctorId/${auth?.loggedDoctor?.id}`)
-        .then((response) => {
-          loading?.hide();
-          setConsultatios(response.data);
-        })
-        .catch(() => loading?.hide());
+      getConsultations();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const getConsultations = () => {
+    loading?.show();
+    api
+      .get(`/findAllByDoctorId/${auth?.loggedDoctor?.id}`)
+      .then((response) => {
+        loading?.hide();
+        setConsultations(response.data);
+      })
+      .catch(() => loading?.hide());
+  };
 
   const updateConsultation = (id: string) => {
     if (id) {
       navigate(`/editConsultation/${id}`);
     }
+  };
+
+  const deleteConsultation = (id: string) => {
+    const exec = () => {
+      loading?.show();
+      api
+        .delete(`/deleteConsultation/${id}`)
+        .then((_) => {
+          getConsultations();
+          showSuccess("Consulta excluida com sucesso!");
+        })
+        .catch(() => loading?.hide());
+    };
+
+    modals.openConfirmModal({
+      title: "Excluir consulta?",
+      children: "Deseja excluir a consulta? Essa ação não poderá ser desfeita!",
+      labels: { confirm: "Excluir", cancel: "Cancelar" },
+      confirmProps: { color: "red" },
+      onConfirm: exec,
+    });
   };
 
   const formatBooleanColumn = (value: boolean) => (value ? "Sim" : "Não");
@@ -71,6 +97,17 @@ const ConsultationList = () => {
                           style={{ width: "70%", height: "70%" }}
                           stroke={1.5}
                           onClick={() => updateConsultation(it.id)}
+                        />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="filled"
+                        color="red"
+                        aria-label="Excluir"
+                      >
+                        <IconTrash
+                          style={{ width: "70%", height: "70%" }}
+                          stroke={1.5}
+                          onClick={() => deleteConsultation(it.id)}
                         />
                       </ActionIcon>
                     </div>

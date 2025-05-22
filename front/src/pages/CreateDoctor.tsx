@@ -12,7 +12,6 @@ import {
   isOver18,
   isValidCPF,
   showError,
-  showSuccess,
 } from "../utils/util";
 import { Doctor } from "../model/Doctor";
 import { Address } from "../model/Address";

@@ -79,6 +79,24 @@ export default class PatientService {
 
     return data;
   }
+
+  async findPatientByQuery(query: string) {
+    const patients = await client.patient.findMany({
+      where: {
+        OR: [
+          { name: { contains: query } },
+          { email: { contains: query } },
+          { cpf: { contains: query } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    return patients;
+  }
 }
 
 async function validateField(

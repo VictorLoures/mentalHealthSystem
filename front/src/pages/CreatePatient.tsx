@@ -10,7 +10,6 @@ import {
   isOver18,
   isValidCPF,
   showError,
-  showSuccess,
 } from "../utils/util";
 import { Address } from "../model/Address";
 import AddressComponent from "../components/AddressComponent";
@@ -153,7 +152,7 @@ const CreatePatient = () => {
           patientToSend,
           "Paciente atualizado com sucesso!",
           navigate,
-          "patients"
+          "/patients"
         );
       } else {
         create(
@@ -161,7 +160,7 @@ const CreatePatient = () => {
           patientToSend,
           "Paciente cadastrado com sucesso!",
           navigate,
-          "patients"
+          "/patients"
         );
       }
     }

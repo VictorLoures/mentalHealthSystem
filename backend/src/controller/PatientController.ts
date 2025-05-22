@@ -33,4 +33,10 @@ export default class PatientController {
       return res.status(409).json(err.message);
     }
   }
+
+  async findPatientByQuery(req: Request, res: Response) {
+    return res.json(
+      await new PatientService().findPatientByQuery(req.params.query)
+    );
+  }
 }

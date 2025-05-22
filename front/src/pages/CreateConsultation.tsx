@@ -2,12 +2,13 @@ import { Button, Checkbox, Group, NumberInput, TextInput } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { useNavigate, useParams } from "react-router-dom";
 import { CAMPO_OBRIGATORIO, showError } from "../utils/util";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Consultation } from "../model/Consultation";
 import { create, update } from "../api/api.uti";
 import { DateTimePicker } from "@mantine/dates";
 import api from "../api/api";
+import PatientSelect from "../components/PatientSelect";
 
 const CreateConsultation = () => {
   const form = useForm<Consultation>({
@@ -29,12 +30,13 @@ const CreateConsultation = () => {
   const auth = useContext(AuthContext);
   const { id } = useParams();
 
+  const [selectedPatientId, setSelectedPatientId] = useState<String | null>("");
+
   useEffect(() => {
     if (id) {
       api.get(`/findConsultationById/${id}`).then((response) => {
         if (response.data) {
           const data = response.data;
-          console.log(data);
           form.setValues({
             id: data.id,
             day: data.day,
@@ -42,6 +44,7 @@ const CreateConsultation = () => {
             paid: data.paid,
             online: data.online,
           });
+          setSelectedPatientId(data.patient?.id?.toString());
         } else {
           showError("Ocorreu um erro inesperado!");
         }
@@ -50,7 +53,7 @@ const CreateConsultation = () => {
   }, []);
 
   const handleSubmit = (values: typeof form.values) => {
-    const { id: idConsultation, ...consultation } = values;
+    const { id: idConsultation, day, ...consultation } = values;
 
     const consultationToSend: Consultation = {
       ...consultation,
@@ -58,7 +61,7 @@ const CreateConsultation = () => {
         id: auth?.loggedDoctor?.id,
       },
       patient: {
-        id: 0,
+        id: Number(selectedPatientId),
       },
     };
 
@@ -72,7 +75,8 @@ const CreateConsultation = () => {
       //   "/consultations"
       // );
     } else {
-      console.log(consultationToSend);
+      // todo date
+      console.log(day);
       // create(
       //   "/createConsultation",
       //   consultationToSend,
@@ -121,7 +125,7 @@ const CreateConsultation = () => {
         key={form.key("online")}
         {...form.getInputProps("online", { type: "checkbox" })}
       />
-      {/* todo select patient */}
+      <PatientSelect setSelectedPatientId={setSelectedPatientId} />
       <Group justify="flex-end" mt="md">
         <Button color="red" onClick={() => navigate("/consultations")}>
           Cancelar
