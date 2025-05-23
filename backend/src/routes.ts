@@ -60,6 +60,12 @@ routes.get(
   new LoginController().decryptToken
 );
 
+routes.get(
+  "/findPatientByQuery/:doctorId/:query",
+  isAuthenticated,
+  new PatientController().findPatientByQuery
+);
+
 // POST
 routes.post("/createPatient", isAuthenticated, new PatientController().create);
 routes.post(

@@ -3,18 +3,20 @@ import { Button, Group, PasswordInput, TextInput } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import api from "../api/api";
 import { IMaskInput } from "react-imask";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import {
   CAMPO_OBRIGATORIO,
+  formatCep,
+  formatDate,
   isOver18,
   isValidCPF,
   showError,
-  showSuccess,
 } from "../utils/util";
 import { Doctor } from "../model/Doctor";
 import { Address } from "../model/Address";
 import AddressComponent from "../components/AddressComponent";
+import { create, update } from "../api/api.uti";
 
 const IMaskInputDateWrapper = (props: any) => {
   return <IMaskInput mask="00/00/0000" {...props} />;
@@ -30,12 +32,17 @@ const IMaskPhoneWrapper = (props: any) => {
 
 interface ScreenFields {
   passwordConfirmation?: string;
+  idAdress?: string;
   adressNotNumber?: boolean;
 }
 
-const fieldsRequired = ["name", "password", "passwordConfirmation"];
+const fieldsRequiredSave = ["name", "password", "passwordConfirmation"];
+const fieldsRequiredEdit = ["name"];
 
 const Register = () => {
+  const { id } = useParams();
+  const fieldsRequiredToUse = id ? fieldsRequiredEdit : fieldsRequiredSave;
+
   const form = useForm<Doctor & Address & ScreenFields>({
     initialValues: {
       name: "",
@@ -64,7 +71,7 @@ const Register = () => {
       cep: (value: any) => (value?.length === 9 ? null : CAMPO_OBRIGATORIO),
       dateBirth: (value: any) =>
         value && isOver18(value) ? null : "Você deve ter mais de 18 anos",
-      ...fieldsRequired.reduce((acc, field) => {
+      ...fieldsRequiredToUse.reduce((acc, field) => {
         acc[field] = isNotEmpty(CAMPO_OBRIGATORIO);
         return acc;
       }, {} as Record<string, ReturnType<typeof isNotEmpty>>),
@@ -75,7 +82,40 @@ const Register = () => {
   const auth = useContext(AuthContext);
 
   useEffect(() => {
-    if (auth?.loggedDoctor) {
+    if (id) {
+      api.get(`/findDoctorById/${id}`).then((response) => {
+        if (response.data) {
+          const data = response.data;
+
+          form.setValues({
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            phoneNumber: data.phoneNumber,
+            dateBirth: formatDate(data.dateBirth),
+            cpf: data.cpf,
+            crpNumber: data.crpNumber,
+            idAdress: data.address?.id ?? "",
+            cep: data.address?.cep ? formatCep(data.address.cep) : "",
+            city: data.address?.city ?? "",
+            neighborhood: data.address?.neighborhood ?? "",
+            street: data.address?.street ?? "",
+            number: data.address?.number ?? "",
+            complement: data.address?.complement ?? "",
+            state: data.address?.state ?? "",
+            password: "",
+            passwordConfirmation: "",
+            adressNotNumber: !data.address?.number,
+          });
+        } else {
+          showError("Ocorreu um erro inesperado!");
+        }
+      });
+    } // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (auth?.loggedDoctor && !id) {
       navigate("/");
     } // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth]);
@@ -84,6 +124,7 @@ const Register = () => {
     const {
       passwordConfirmation,
       adressNotNumber,
+      idAdress,
       cep,
       state,
       city,
@@ -91,6 +132,7 @@ const Register = () => {
       neighborhood,
       complement,
       number,
+      id: idDoctor,
       ...doctor
     } = values;
 
@@ -122,21 +164,55 @@ const Register = () => {
         address,
       };
 
-      api
-        .post("/createDoctor", doctorToSend)
-        .then(() => {
-          showSuccess("Doutor cadastrado com sucesso!");
-          navigate("/login");
-        })
-        .catch((error) => {
-          showError(error.response.data);
+      if (id) {
+        if (doctorToSend && doctorToSend.address) {
+          doctorToSend.address.id = idAdress;
+        }
+        doctorToSend.id = idDoctor;
+        update(
+          "/updateDoctor",
+          doctorToSend,
+          "Doutor atualizado com sucesso!",
+          navigate
+        );
+        auth?.setLoggedDoctor({
+          id: idDoctor,
+          name: doctor.name,
+          email: doctor.email,
         });
+      } else {
+        create(
+          "/createDoctor",
+          doctorToSend,
+          "Doutor cadastrado com sucesso!",
+          navigate,
+          "/login"
+        );
+      }
     }
   };
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <h4>Cadastro de psicólogo</h4>
+      <div style={{ display: "none" }}>
+        <TextInput
+          withAsterisk
+          label="id"
+          key={form.key("id")}
+          {...form.getInputProps("id")}
+          maxLength={150}
+        />
+      </div>
+      <div style={{ display: "none" }}>
+        <TextInput
+          withAsterisk
+          label="id"
+          key={form.key("idAdress")}
+          {...form.getInputProps("idAdress")}
+          maxLength={150}
+        />
+      </div>
       <TextInput
         withAsterisk
         label="Nome completo"
@@ -152,14 +228,14 @@ const Register = () => {
         maxLength={150}
       />
       <PasswordInput
-        withAsterisk
+        withAsterisk={!id}
         label="Senha"
         key={form.key("password")}
         {...form.getInputProps("password")}
         maxLength={50}
       />
       <PasswordInput
-        withAsterisk
+        withAsterisk={!id}
         label="Confirmar senha"
         key={form.key("passwordConfirmation")}
         {...form.getInputProps("passwordConfirmation")}
@@ -195,9 +271,14 @@ const Register = () => {
       />
 
       <AddressComponent form={form} />
-      <Link to="/login">Ja possui conta? Faça login</Link>
+      {!id && <Link to="/login">Ja possui conta? Faça login</Link>}
       <Group justify="flex-end" mt="md">
-        <Button type="submit">Cadastrar</Button>
+        {id && (
+          <Button color="red" onClick={() => navigate("/")}>
+            Cancelar
+          </Button>
+        )}
+        <Button type="submit">{!id ? "Cadastrar" : "Salvar"}</Button>
       </Group>
     </form>
   );

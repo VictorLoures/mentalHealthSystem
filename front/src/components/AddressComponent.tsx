@@ -30,7 +30,6 @@ const AddressComponent = ({ form }: AddressComponentProps) => {
           form.setValues({ city, neighborhood, street, state });
         })
         .catch((err) => {
-          console.log(err);
           loading?.hide();
           showError("CEP não encontrado");
           form.setValues({ city: "", neighborhood: "", street: "", state: "" });

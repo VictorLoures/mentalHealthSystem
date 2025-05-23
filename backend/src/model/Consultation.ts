@@ -3,7 +3,7 @@ import { Patient } from "./Patient";
 
 export interface Consultation {
   id: number;
-  day: Date;
+  day: string;
   price: number;
   paid: boolean;
   online: boolean;
