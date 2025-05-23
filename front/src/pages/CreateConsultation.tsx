@@ -1,4 +1,4 @@
-import { Button, Checkbox, Group, NumberInput, TextInput } from "@mantine/core";
+import { Button, Checkbox, Group, TextInput } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { useNavigate, useParams } from "react-router-dom";
 import { CAMPO_OBRIGATORIO, showError } from "../utils/util";
@@ -30,7 +30,7 @@ const CreateConsultation = () => {
   const auth = useContext(AuthContext);
   const { id } = useParams();
 
-  const [selectedPatientId, setSelectedPatientId] = useState<String | null>("");
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>("");
 
   useEffect(() => {
     if (id) {
@@ -40,55 +40,78 @@ const CreateConsultation = () => {
           form.setValues({
             id: data.id,
             day: data.day,
-            price: data.price,
             paid: data.paid,
             online: data.online,
           });
+          formatPrice(data.price);
           setSelectedPatientId(data.patient?.id?.toString());
         } else {
           showError("Ocorreu um erro inesperado!");
         }
       });
-    } // eslint-disable-next-line react-hooks/exhaustive-deps
+    } else {
+      formatPrice();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = (values: typeof form.values) => {
-    const { id: idConsultation, day, ...consultation } = values;
+    if (selectedPatientId) {
+      const { id: idConsultation, price, ...consultation } = values;
 
-    const consultationToSend: Consultation = {
-      ...consultation,
-      user: {
-        id: auth?.loggedDoctor?.id,
-      },
-      patient: {
-        id: Number(selectedPatientId),
-      },
-    };
+      const priceAdjusted = price?.toString()?.replace(/\D/g, "");
 
-    if (id) {
-      consultationToSend.id = idConsultation;
-      // update(
-      //   "/updateConsultation",
-      //   consultationToSend,
-      //   "Consulta atualizada com sucesso!",
-      //   navigate,
-      //   "/consultations"
-      // );
+      const consultationToSend: Consultation = {
+        ...consultation,
+        price: Number(priceAdjusted),
+        user: {
+          id: auth?.loggedDoctor?.id,
+        },
+        patient: {
+          id: Number(selectedPatientId),
+        },
+      };
+
+      if (id) {
+        consultationToSend.id = idConsultation;
+        update(
+          "/updateConsultation",
+          consultationToSend,
+          "Consulta atualizada com sucesso!",
+          navigate,
+          "/consultations"
+        );
+      } else {
+        create(
+          "/createConsultation",
+          consultationToSend,
+          "Consulta cadastrada com sucesso!",
+          navigate,
+          "/consultations"
+        );
+      }
     } else {
-      // todo date
-      console.log(day);
-      // create(
-      //   "/createConsultation",
-      //   consultationToSend,
-      //   "Consulta cadastrada com sucesso!",
-      //   navigate,
-      //   "/consultations"
-      // );
+      showError("O campo 'Paciente' é obrigatório");
     }
   };
 
+  const formatPrice = (price: any = null) => {
+    const value = price ? (Number(price) ? price : price.target.value) : "0";
+    let priceFmt = value.replace(/\D/g, "");
+    priceFmt = (parseFloat(priceFmt) / 100).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+    form.setFieldValue(
+      "price",
+      priceFmt.includes("NaN") ? "R$ 0,00" : priceFmt
+    );
+  };
+
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)}>
+    <form
+      onSubmit={form.onSubmit(handleSubmit, (values) => console.log(values))}
+    >
       <h4>Cadastro de consulta</h4>
       <div style={{ display: "none" }}>
         <TextInput
@@ -105,13 +128,13 @@ const CreateConsultation = () => {
         key={form.key("day")}
         {...form.getInputProps("day")}
       />
-      <NumberInput
+      <TextInput
         withAsterisk
         label="Preço"
-        prefix="R$ "
         key={form.key("price")}
         {...form.getInputProps("price")}
         maxLength={20}
+        onChange={formatPrice}
       />
       <Checkbox
         mt="md"
@@ -125,7 +148,11 @@ const CreateConsultation = () => {
         key={form.key("online")}
         {...form.getInputProps("online", { type: "checkbox" })}
       />
-      <PatientSelect setSelectedPatientId={setSelectedPatientId} />
+      <PatientSelect
+        setSelectedPatientId={setSelectedPatientId}
+        selectedPatientId={selectedPatientId}
+        form={form}
+      />
       <Group justify="flex-end" mt="md">
         <Button color="red" onClick={() => navigate("/consultations")}>
           Cancelar

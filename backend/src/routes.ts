@@ -61,7 +61,7 @@ routes.get(
 );
 
 routes.get(
-  "/findPatientByQuery/:query",
+  "/findPatientByQuery/:doctorId/:query",
   isAuthenticated,
   new PatientController().findPatientByQuery
 );

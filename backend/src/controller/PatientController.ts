@@ -36,7 +36,10 @@ export default class PatientController {
 
   async findPatientByQuery(req: Request, res: Response) {
     return res.json(
-      await new PatientService().findPatientByQuery(req.params.query)
+      await new PatientService().findPatientByQuery(
+        req.params.doctorId,
+        req.params.query
+      )
     );
   }
 }

@@ -71,6 +71,20 @@ export const formatDate = (isoDate: string): string => {
   });
 };
 
+export const formatDateWhitHourToSend = (isoDate: string): string => {
+  return new Date(isoDate)
+    .toLocaleString("pt-BR", {
+      timeZone: "UTC",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .replace(",", "");
+};
+
 export const formatDateWhitHour = (dateStr: string): string => {
   return dateStr.replace(",", " às");
 };
@@ -80,8 +94,8 @@ export const formatCep = (cep: string) => {
 };
 
 export const formatToBRL = (value: number): string => {
-  return new Intl.NumberFormat("pt-BR", {
+  return (parseFloat(value.toString()) / 100).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(value);
+  });
 };
