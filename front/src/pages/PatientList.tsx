@@ -80,11 +80,11 @@ const PatientList = () => {
       {!patients ||
         (patients.length <= 0 && <h3>Você não possui pacientes</h3>)}
       <Group justify="flex-end" mt="md">
-        <Button color="green" onClick={() => navigate("/createPatient")}>
-          Incluir
-        </Button>
         <Button color="red" onClick={() => navigate("/")}>
           Voltar a página inicial
+        </Button>
+        <Button color="green" onClick={() => navigate("/createPatient")}>
+          Incluir
         </Button>
       </Group>
     </>

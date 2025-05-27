@@ -101,6 +101,8 @@ export default class PatientService {
       select: {
         id: true,
         name: true,
+        cpf: true,
+        email: true,
       },
     });
 

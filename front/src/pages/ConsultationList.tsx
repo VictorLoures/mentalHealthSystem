@@ -121,11 +121,11 @@ const ConsultationList = () => {
       {!consultations ||
         (consultations.length <= 0 && <h3>Você não possui consultas</h3>)}
       <Group justify="flex-end" mt="md">
-        <Button color="green" onClick={() => navigate("/createConsultation")}>
-          Incluir
-        </Button>
         <Button color="red" onClick={() => navigate("/")}>
           Voltar a página inicial
+        </Button>
+        <Button color="green" onClick={() => navigate("/createConsultation")}>
+          Incluir
         </Button>
       </Group>
     </>
