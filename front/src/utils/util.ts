@@ -64,3 +64,38 @@ export const showError = (title: string) => {
     position: "top-right",
   });
 };
+
+export const formatDate = (isoDate: string): string => {
+  return new Date(isoDate).toLocaleDateString("pt-BR", {
+    timeZone: "UTC",
+  });
+};
+
+export const formatDateWhitHourToSend = (isoDate: string): string => {
+  return new Date(isoDate)
+    .toLocaleString("pt-BR", {
+      timeZone: "UTC",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .replace(",", "");
+};
+
+export const formatDateWhitHour = (dateStr: string): string => {
+  return dateStr.replace(",", " às");
+};
+
+export const formatCep = (cep: string) => {
+  return `${cep.substring(0, 5)}-${cep.substring(5, 8)}`;
+};
+
+export const formatToBRL = (value: number): string => {
+  return (parseFloat(value.toString()) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+};

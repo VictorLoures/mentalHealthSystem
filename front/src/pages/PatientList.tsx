@@ -1,9 +1,11 @@
-import { Button, Group, Table } from "@mantine/core";
+import { ActionIcon, Button, Group, Table } from "@mantine/core";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { LoadingContext } from "../context/LoadingContext";
+import { formatDate } from "../utils/util";
+import { IconPencil } from "@tabler/icons-react";
 
 const PatientList = () => {
   const navigate = useNavigate();
@@ -13,10 +15,7 @@ const PatientList = () => {
   const [patients, setPatients] = useState([]);
 
   useEffect(() => {
-    console.log("fora");
-    console.log(auth);
     if (auth?.loggedDoctor?.id) {
-      console.log("dentro");
       loading?.show();
       api
         .get(`/findByAllByDoctorId/${auth?.loggedDoctor?.id}`)
@@ -29,10 +28,10 @@ const PatientList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const formatDate = (isoDate: string): string => {
-    return new Date(isoDate).toLocaleDateString("pt-BR", {
-      timeZone: "UTC",
-    });
+  const updatePatient = (id: string) => {
+    if (id) {
+      navigate(`/editPatient/${id}`);
+    }
   };
 
   return (
@@ -46,6 +45,7 @@ const PatientList = () => {
               <Table.Th>Email</Table.Th>
               <Table.Th>Telefone</Table.Th>
               <Table.Th>Data de nascimento</Table.Th>
+              <Table.Th>Ações</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -56,6 +56,21 @@ const PatientList = () => {
                   <Table.Td>{it.email}</Table.Td>
                   <Table.Td>{it.phoneNumber}</Table.Td>
                   <Table.Td>{formatDate(it.dateBirth)}</Table.Td>
+                  <Table.Td>
+                    <div style={{ display: "flex", gap: "5px" }}>
+                      <ActionIcon
+                        variant="filled"
+                        color="blue"
+                        aria-label="Editar"
+                      >
+                        <IconPencil
+                          style={{ width: "70%", height: "70%" }}
+                          stroke={1.5}
+                          onClick={() => updatePatient(it.id)}
+                        />
+                      </ActionIcon>
+                    </div>
+                  </Table.Td>
                 </Table.Tr>
               );
             })}
@@ -67,6 +82,9 @@ const PatientList = () => {
       <Group justify="flex-end" mt="md">
         <Button color="red" onClick={() => navigate("/")}>
           Voltar a página inicial
+        </Button>
+        <Button color="green" onClick={() => navigate("/createPatient")}>
+          Incluir
         </Button>
       </Group>
     </>
