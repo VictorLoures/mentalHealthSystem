@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";
+import ConsultationList from "./ConsultationList";
 
 const Dashboard = () => {
   const auth = useContext(AuthContext);
@@ -16,7 +17,8 @@ const Dashboard = () => {
   return (
     <div>
       <p>
-        Olá {auth?.loggedDoctor?.name}! - {auth?.loggedDoctor?.email}
+        Olá {auth?.loggedDoctor?.name}!
+        <ConsultationList title="Consultas do dia" isDashboard />
       </p>
       <Link to="/patients">Ver meus pacientes</Link>
       <br />

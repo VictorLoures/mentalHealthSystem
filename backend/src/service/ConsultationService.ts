@@ -1,6 +1,8 @@
 import client from "../prismaConfig";
 import { Consultation } from "../model/Consultation";
 import { parseDateAndHourBr } from "../util/util";
+import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 const DEFAULT_SELECT_OBJ = {
   id: true,
@@ -28,7 +30,9 @@ export default class ConsultationService {
       where: { doctor_id: idDoctor },
       select: DEFAULT_SELECT_OBJ,
     });
+    console.log(data);
     formatHourSelect(data);
+    console.log(data);
     return data;
   }
 
@@ -79,12 +83,47 @@ export default class ConsultationService {
       where: { id: idConsultation },
     });
   }
+
+  async findAllByDoctorIdInDay(idDoctor: number) {
+    const now = new Date();
+    const start = createDate(now, 0);
+    const end = createDate(now, 1);
+
+    const consultations = await client.consultation.findMany({
+      where: {
+        doctor_id: idDoctor,
+        day: {
+          gte: start,
+          lt: end,
+        },
+      },
+      select: DEFAULT_SELECT_OBJ,
+    });
+    formatHourSelect(consultations);
+
+    return consultations;
+  }
 }
 
 const formatHourSelect = (data: any) => {
   if (data && data.length > 0) {
     data.forEach((it) => {
-      it.day = it.day.toLocaleString();
+      const date = new Date(it.day);
+      it.day = formatInTimeZone(date, "UTC", "dd/MM/yyyy HH:mm");
     });
   }
+};
+
+const createDate = (now, day) => {
+  return new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + day,
+      0,
+      0,
+      0,
+      0
+    )
+  );
 };
