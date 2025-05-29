@@ -30,9 +30,7 @@ export default class ConsultationService {
       where: { doctor_id: idDoctor },
       select: DEFAULT_SELECT_OBJ,
     });
-    console.log(data);
     formatHourSelect(data);
-    console.log(data);
     return data;
   }
 
@@ -102,6 +100,17 @@ export default class ConsultationService {
     formatHourSelect(consultations);
 
     return consultations;
+  }
+
+  async payConsultation(idConsultation: number) {
+    await client.consultation.update({
+      where: {
+        id: Number(idConsultation),
+      },
+      data: {
+        paid: true,
+      },
+    });
   }
 }
 

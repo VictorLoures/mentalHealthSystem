@@ -4,9 +4,10 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { LoadingContext } from "../context/LoadingContext";
-import { formatToBRL, showSuccess } from "../utils/util";
+import { formatToBRL, showError, showSuccess } from "../utils/util";
 import { IconCoin, IconPencil, IconTrash } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
+import { Consultation } from "../model/Consultation";
 
 interface ConsultationListProps {
   title?: string;
@@ -18,7 +19,7 @@ const ConsultationList = ({ title, isDashboard }: ConsultationListProps) => {
   const auth = useContext(AuthContext);
   const loading = useContext(LoadingContext);
 
-  const [consultations, setConsultations] = useState([]);
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
 
   useEffect(() => {
     if (auth?.loggedDoctor?.id) {
@@ -82,6 +83,23 @@ const ConsultationList = ({ title, isDashboard }: ConsultationListProps) => {
 
   const formatBooleanColumn = (value: boolean) => (value ? "Sim" : "Não");
 
+  const payConsultation = (id: string, paid: boolean) => {
+    if (paid) {
+      showError("A consulta já foi paga!");
+    } else {
+      api.get(`/payConsultation/${id}`);
+      const consultationsUpdated: Consultation[] = [];
+      consultations.forEach((con: Consultation) => {
+        if (Number(con.id) === Number(id)) {
+          con.paid = true;
+        }
+        consultationsUpdated.push(con);
+      });
+      setConsultations(consultationsUpdated);
+      showSuccess("Baixa efetuada com sucesso!");
+    }
+  };
+
   return (
     <>
       <h3>{title ? title : "Suas consultas"}</h3>
@@ -109,14 +127,14 @@ const ConsultationList = ({ title, isDashboard }: ConsultationListProps) => {
                   <Table.Td>
                     {isDashboard ? (
                       <ActionIcon
-                        variant="outline"
+                        variant="filled"
                         color="green"
                         aria-label="Dar baixa no valor"
                       >
                         <IconCoin
                           style={{ width: "70%", height: "70%" }}
                           stroke={1.5}
-                          onClick={() => updateConsultation(it.id)}
+                          onClick={() => payConsultation(it.id, it.paid)}
                         />
                       </ActionIcon>
                     ) : (

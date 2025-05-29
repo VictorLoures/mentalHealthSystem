@@ -45,4 +45,11 @@ export default class ConsultationController {
       )
     );
   }
+
+  async payConsultation(req: Request, res: Response) {
+    await new ConsultationService().payConsultation(
+      Number(req.params.idConsultation)
+    );
+    return res.status(200).json(null);
+  }
 }
