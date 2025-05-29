@@ -4,11 +4,16 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import { AuthContext } from "../context/AuthContext";
 import { LoadingContext } from "../context/LoadingContext";
-import { formatDateWhitHour, formatToBRL, showSuccess } from "../utils/util";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { formatToBRL, showSuccess } from "../utils/util";
+import { IconCoin, IconPencil, IconTrash } from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 
-const ConsultationList = () => {
+interface ConsultationListProps {
+  title?: string;
+  isDashboard?: boolean;
+}
+
+const ConsultationList = ({ title, isDashboard }: ConsultationListProps) => {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
   const loading = useContext(LoadingContext);
@@ -17,7 +22,11 @@ const ConsultationList = () => {
 
   useEffect(() => {
     if (auth?.loggedDoctor?.id) {
-      getConsultations();
+      if (isDashboard) {
+        getConsultationsInDay();
+      } else {
+        getConsultations();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -26,6 +35,17 @@ const ConsultationList = () => {
     loading?.show();
     api
       .get(`/findAllByDoctorId/${auth?.loggedDoctor?.id}`)
+      .then((response) => {
+        loading?.hide();
+        setConsultations(response.data);
+      })
+      .catch(() => loading?.hide());
+  };
+
+  const getConsultationsInDay = () => {
+    loading?.show();
+    api
+      .get(`/findAllByDoctorIdInDay/${auth?.loggedDoctor?.id}`)
       .then((response) => {
         loading?.hide();
         setConsultations(response.data);
@@ -64,7 +84,7 @@ const ConsultationList = () => {
 
   return (
     <>
-      <h3>Suas consultas</h3>
+      <h3>{title ? title : "Suas consultas"}</h3>
       {consultations && consultations.length > 0 && (
         <Table>
           <Table.Thead>
@@ -82,35 +102,49 @@ const ConsultationList = () => {
               return (
                 <Table.Tr key={it.id}>
                   <Table.Td>{it.patient.name}</Table.Td>
-                  <Table.Td>{formatDateWhitHour(it.day)}</Table.Td>
+                  <Table.Td>{it.day}</Table.Td>
                   <Table.Td>{formatToBRL(it.price)}</Table.Td>
                   <Table.Td>{formatBooleanColumn(it.paid)}</Table.Td>
                   <Table.Td>{formatBooleanColumn(it.online)}</Table.Td>
                   <Table.Td>
-                    <div style={{ display: "flex", gap: "5px" }}>
+                    {isDashboard ? (
                       <ActionIcon
-                        variant="filled"
-                        color="blue"
-                        aria-label="Editar"
+                        variant="outline"
+                        color="green"
+                        aria-label="Dar baixa no valor"
                       >
-                        <IconPencil
+                        <IconCoin
                           style={{ width: "70%", height: "70%" }}
                           stroke={1.5}
                           onClick={() => updateConsultation(it.id)}
                         />
                       </ActionIcon>
-                      <ActionIcon
-                        variant="filled"
-                        color="red"
-                        aria-label="Excluir"
-                      >
-                        <IconTrash
-                          style={{ width: "70%", height: "70%" }}
-                          stroke={1.5}
-                          onClick={() => deleteConsultation(it.id)}
-                        />
-                      </ActionIcon>
-                    </div>
+                    ) : (
+                      <div style={{ display: "flex", gap: "5px" }}>
+                        <ActionIcon
+                          variant="filled"
+                          color="blue"
+                          aria-label="Editar"
+                        >
+                          <IconPencil
+                            style={{ width: "70%", height: "70%" }}
+                            stroke={1.5}
+                            onClick={() => updateConsultation(it.id)}
+                          />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="filled"
+                          color="red"
+                          aria-label="Excluir"
+                        >
+                          <IconTrash
+                            style={{ width: "70%", height: "70%" }}
+                            stroke={1.5}
+                            onClick={() => deleteConsultation(it.id)}
+                          />
+                        </ActionIcon>
+                      </div>
+                    )}
                   </Table.Td>
                 </Table.Tr>
               );
@@ -120,14 +154,16 @@ const ConsultationList = () => {
       )}
       {!consultations ||
         (consultations.length <= 0 && <h3>Você não possui consultas</h3>)}
-      <Group justify="flex-end" mt="md">
-        <Button color="red" onClick={() => navigate("/")}>
-          Voltar a página inicial
-        </Button>
-        <Button color="green" onClick={() => navigate("/createConsultation")}>
-          Incluir
-        </Button>
-      </Group>
+      {!isDashboard && (
+        <Group justify="flex-end" mt="md">
+          <Button color="red" onClick={() => navigate("/")}>
+            Voltar a página inicial
+          </Button>
+          <Button color="green" onClick={() => navigate("/createConsultation")}>
+            Incluir
+          </Button>
+        </Group>
+      )}
     </>
   );
 };

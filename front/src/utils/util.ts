@@ -1,4 +1,5 @@
 import { notifications } from "@mantine/notifications";
+import { toZonedTime, format } from "date-fns-tz";
 
 export const TOKEN = "doctor";
 
@@ -71,22 +72,10 @@ export const formatDate = (isoDate: string): string => {
   });
 };
 
-export const formatDateWhitHourToSend = (isoDate: string): string => {
-  return new Date(isoDate)
-    .toLocaleString("pt-BR", {
-      timeZone: "UTC",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })
-    .replace(",", "");
-};
-
-export const formatDateWhitHour = (dateStr: string): string => {
-  return dateStr.replace(",", " às");
+export const formatDateWhitHourToSend = (isoDate: any): any => {
+  const timeZone = "America/Sao_Paulo";
+  const zonedDate = toZonedTime(isoDate, timeZone);
+  return format(zonedDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", { timeZone: "UTC" });
 };
 
 export const formatCep = (cep: string) => {
