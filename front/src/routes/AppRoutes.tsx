@@ -12,9 +12,11 @@ import CreatePatient from "../pages/CreatePatient";
 import PatientList from "../pages/PatientList";
 import ConsultationList from "../pages/ConsultationList";
 import CreateConsultation from "../pages/CreateConsultation";
+import HeaderComponent from "../components/HeaderComponent";
 
 const AppRoutes = () => (
   <Router>
+    <HeaderComponent />
     <Routes>
       <Route element={<PrivateRoute />}>
         <Route path="/" element={<Dashboard />} />

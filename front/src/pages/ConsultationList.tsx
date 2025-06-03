@@ -1,13 +1,14 @@
-import { ActionIcon, Button, Group, Table } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
+import TableComponent from "../components/TableComponent";
 import { AuthContext } from "../context/AuthContext";
 import { LoadingContext } from "../context/LoadingContext";
-import { formatToBRL, showError, showSuccess } from "../utils/util";
-import { IconCoin, IconPencil, IconTrash } from "@tabler/icons-react";
-import { modals } from "@mantine/modals";
 import { Consultation } from "../model/Consultation";
+import { formatToBRL, showError, showSuccess } from "../utils/util";
+import { ActionIcon } from "@mantine/core";
+import { IconCoin } from "@tabler/icons-react";
 
 interface ConsultationListProps {
   title?: string;
@@ -100,89 +101,60 @@ const ConsultationList = ({ title, isDashboard }: ConsultationListProps) => {
     }
   };
 
+  const dashboardContentFn = (obj: any) => {
+    return (
+      <ActionIcon
+        variant="filled"
+        color="green"
+        aria-label="Dar baixa no valor"
+      >
+        <IconCoin
+          style={{ width: "70%", height: "70%" }}
+          stroke={1.5}
+          onClick={() => payConsultation(obj.id, obj.paid)}
+        />
+      </ActionIcon>
+    );
+  };
+
+  const columns: any[] = [
+    {
+      label: "Paciente",
+      field: "patient.name",
+    },
+    {
+      label: "Dia e hora",
+      field: "day",
+    },
+    {
+      label: "Preço",
+      field: "price",
+      fnFmt: formatToBRL,
+    },
+    {
+      label: "Já foi pago",
+      field: "paid",
+      fnFmt: formatBooleanColumn,
+    },
+    {
+      label: "É presencial?",
+      field: "online",
+      fnFmt: formatBooleanColumn,
+    },
+  ];
+
   return (
-    <>
-      <h3>{title ? title : "Suas consultas"}</h3>
-      {consultations && consultations.length > 0 && (
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Paciente</Table.Th>
-              <Table.Th>Dia e hora</Table.Th>
-              <Table.Th>Preço</Table.Th>
-              <Table.Th>Já foi Pago?</Table.Th>
-              <Table.Th>É presencial?</Table.Th>
-              <Table.Th>Ações</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {consultations.map((it: any) => {
-              return (
-                <Table.Tr key={it.id}>
-                  <Table.Td>{it.patient.name}</Table.Td>
-                  <Table.Td>{it.day}</Table.Td>
-                  <Table.Td>{formatToBRL(it.price)}</Table.Td>
-                  <Table.Td>{formatBooleanColumn(it.paid)}</Table.Td>
-                  <Table.Td>{formatBooleanColumn(it.online)}</Table.Td>
-                  <Table.Td>
-                    {isDashboard ? (
-                      <ActionIcon
-                        variant="filled"
-                        color="green"
-                        aria-label="Dar baixa no valor"
-                      >
-                        <IconCoin
-                          style={{ width: "70%", height: "70%" }}
-                          stroke={1.5}
-                          onClick={() => payConsultation(it.id, it.paid)}
-                        />
-                      </ActionIcon>
-                    ) : (
-                      <div style={{ display: "flex", gap: "5px" }}>
-                        <ActionIcon
-                          variant="filled"
-                          color="blue"
-                          aria-label="Editar"
-                        >
-                          <IconPencil
-                            style={{ width: "70%", height: "70%" }}
-                            stroke={1.5}
-                            onClick={() => updateConsultation(it.id)}
-                          />
-                        </ActionIcon>
-                        <ActionIcon
-                          variant="filled"
-                          color="red"
-                          aria-label="Excluir"
-                        >
-                          <IconTrash
-                            style={{ width: "70%", height: "70%" }}
-                            stroke={1.5}
-                            onClick={() => deleteConsultation(it.id)}
-                          />
-                        </ActionIcon>
-                      </div>
-                    )}
-                  </Table.Td>
-                </Table.Tr>
-              );
-            })}
-          </Table.Tbody>
-        </Table>
-      )}
-      {!consultations ||
-        (consultations.length <= 0 && <h3>Você não possui consultas</h3>)}
-      {!isDashboard && (
-        <Group justify="flex-end" mt="md">
-          <Button color="red" onClick={() => navigate("/")}>
-            Voltar a página inicial
-          </Button>
-          <Button color="green" onClick={() => navigate("/createConsultation")}>
-            Incluir
-          </Button>
-        </Group>
-      )}
-    </>
+    <TableComponent
+      title={title ? title : "Suas consultas"}
+      createView="/createConsultation"
+      data={consultations}
+      columns={columns}
+      isDashboard={isDashboard}
+      dashboardContentFn={dashboardContentFn}
+      updateFn={updateConsultation}
+      deleteFn={deleteConsultation}
+      msgNoData="Você não possui consultas"
+    />
   );
 };
 
