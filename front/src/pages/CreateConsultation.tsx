@@ -43,7 +43,7 @@ const CreateConsultation = () => {
           const data = response.data;
           form.setValues({
             id: data.id,
-            day: data.day,
+            day: new Date(data.day.replace("Z", "")).toString(),
             paid: data.paid,
             online: data.online,
           });
@@ -162,7 +162,7 @@ const CreateConsultation = () => {
         <Button color="red" onClick={() => navigate("/consultations")}>
           Cancelar
         </Button>
-        <Button type="submit">Cadastrar</Button>
+        <Button type="submit">{!id ? "Cadastrar" : "Salvar"}</Button>
       </Group>
     </form>
   );

@@ -1,5 +1,6 @@
-import { ActionIcon, Button, Group, Table } from "@mantine/core";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
+import { ActionIcon, Button, Group, Table, TextInput } from "@mantine/core";
+import { IconPencil, IconSearch, IconTrash, IconX } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface TableComponentProps {
@@ -26,27 +27,84 @@ const TableComponent = ({
   msgNoData,
 }: TableComponentProps) => {
   const navigate = useNavigate();
+  const [filterData, setFilterData] = useState<any>([]);
+  const [search, setSearch] = useState<string>("");
+
+  useEffect(() => {
+    setFilterData(data);
+  }, [data]);
 
   function getFieldValue(it: any, field: any) {
     return field.split(".").reduce((acc: any, chave: any) => acc?.[chave], it);
   }
 
+  const onChangeFilter = (event: any) => {
+    if (event && event.target.value !== "" && filterData && data) {
+      const valueSearch = event.target.value;
+      setSearch(valueSearch);
+      const dataFilter = data.filter((it) => {
+        const values: any[] = [];
+        columns?.forEach((column) => {
+          let fieldValue = getFieldValue(it, column.field);
+          if (typeof fieldValue === "boolean") {
+            fieldValue = fieldValue ? "Sim" : "Não";
+          }
+          console.log(values);
+          values.push(fieldValue);
+        });
+        return values.some((val) => val.toString().includes(valueSearch));
+      });
+      setFilterData(dataFilter);
+    } else {
+      setSearch("");
+      setFilterData(data);
+    }
+  };
+
+  const getCleanSearchIcon = () => {
+    if (search) {
+      return (
+        <IconX
+          size={18}
+          color="red"
+          style={{ cursor: "pointer" }}
+          onClick={() => onChangeFilter(null)}
+        />
+      );
+    } else {
+      return null;
+    }
+  };
+
   return (
     <>
+      <h3 style={{ margin: "15px" }}>{title}</h3>
       <div className="header-div">
-        <h3>{title}</h3>
         {!isDashboard && (
-          <Group justify="flex-end" mt="md">
-            <Button color="red" onClick={() => navigate("/")}>
-              Fechar
-            </Button>
-            <Button color="green" onClick={() => navigate(createView)}>
-              Incluir
-            </Button>
-          </Group>
+          <>
+            <TextInput
+              withAsterisk
+              label={null}
+              placeholder="Refine sua busca..."
+              value={search}
+              leftSection={<IconSearch size={18} />}
+              rightSection={<>{getCleanSearchIcon()}</>}
+              maxLength={150}
+              onChange={onChangeFilter}
+              style={{ width: "30vw" }}
+            />
+            <Group justify="flex-end" mt="md">
+              <Button color="red" onClick={() => navigate("/")}>
+                Fechar
+              </Button>
+              <Button color="green" onClick={() => navigate(createView)}>
+                Incluir
+              </Button>
+            </Group>
+          </>
         )}
       </div>
-      {data && data.length > 0 && (
+      {filterData && filterData.length > 0 && (
         <Table>
           <Table.Thead>
             <Table.Tr>
@@ -57,7 +115,7 @@ const TableComponent = ({
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {data.map((it: any) => {
+            {filterData.map((it: any) => {
               return (
                 <Table.Tr key={it.id}>
                   {columns?.map((column) => {
@@ -111,7 +169,12 @@ const TableComponent = ({
           </Table.Tbody>
         </Table>
       )}
-      {!data || (data.length <= 0 && <h3>{msgNoData}</h3>)}
+      {!filterData ||
+        (filterData.length <= 0 && (
+          <h3 style={{ display: "flex", justifyContent: "center" }}>
+            {msgNoData}
+          </h3>
+        ))}
     </>
   );
 };
