@@ -145,7 +145,7 @@ const ConsultationList = ({ title, isDashboard }: ConsultationListProps) => {
 
   return (
     <TableComponent
-      title={title ? title : "Suas consultas"}
+      title={title ? title : "Consultas"}
       createView="/createConsultation"
       data={consultations}
       columns={columns}

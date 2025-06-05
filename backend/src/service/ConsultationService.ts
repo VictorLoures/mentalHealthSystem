@@ -19,6 +19,9 @@ export default class ConsultationService {
   async findById(idConsultation: number) {
     const data = await client.consultation.findFirst({
       where: { id: idConsultation },
+      orderBy: {
+        day: "desc",
+      },
       select: DEFAULT_SELECT_OBJ,
     });
     formatHourSelect(data);
@@ -28,6 +31,9 @@ export default class ConsultationService {
   async findAllByDoctorId(idDoctor: number) {
     const data = await client.consultation.findMany({
       where: { doctor_id: idDoctor },
+      orderBy: {
+        day: "desc",
+      },
       select: DEFAULT_SELECT_OBJ,
     });
     formatHourSelect(data);
@@ -37,6 +43,9 @@ export default class ConsultationService {
   async findAllByPatientId(idPatient: number) {
     const data = await client.consultation.findMany({
       where: { patient_id: idPatient },
+      orderBy: {
+        day: "desc",
+      },
       select: DEFAULT_SELECT_OBJ,
     });
     formatHourSelect(data);
@@ -94,6 +103,9 @@ export default class ConsultationService {
           gte: start,
           lt: end,
         },
+      },
+      orderBy: {
+        day: "asc",
       },
       select: DEFAULT_SELECT_OBJ,
     });

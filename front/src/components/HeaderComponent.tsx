@@ -1,6 +1,7 @@
 import { ActionIcon, Menu } from "@mantine/core";
 import {
   IconCurrencyDollar,
+  IconDashboard,
   IconDoorExit,
   IconEdit,
   IconMenu,
@@ -33,6 +34,12 @@ const HeaderComponent = () => {
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Label>Funcionalidades</Menu.Label>
+          <Menu.Item
+            onClick={() => navigateFn("/")}
+            leftSection={<IconDashboard size={14} />}
+          >
+            Tela inicial
+          </Menu.Item>
           <Menu.Item
             onClick={() => navigateFn("/patients")}
             leftSection={<IconUser size={14} />}

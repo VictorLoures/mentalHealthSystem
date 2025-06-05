@@ -55,7 +55,7 @@ const PatientList = () => {
 
   return (
     <TableComponent
-      title="Seus pacientes"
+      title="Pacientes"
       createView="/createPatient"
       data={patients}
       columns={columns}

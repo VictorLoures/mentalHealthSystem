@@ -72,9 +72,27 @@ export const formatDate = (isoDate: string): string => {
   });
 };
 
-export const formatDateWhitHourToSend = (isoDate: any): any => {
+export const formatDateWhitHourToSend = (
+  input: string | Date | undefined
+): string => {
   const timeZone = "America/Sao_Paulo";
-  const zonedDate = toZonedTime(isoDate, timeZone);
+
+  let date: Date;
+
+  if (input instanceof Date) {
+    date = input;
+  } else if (typeof input === "string") {
+    const sanitized = input.includes("T") ? input : input.replace(" ", "T");
+    const parsed = new Date(sanitized);
+    if (isNaN(parsed.getTime())) {
+      throw new Error("Formato de data inválido");
+    }
+    date = parsed;
+  } else {
+    throw new Error("Tipo de dado inválido para data");
+  }
+
+  const zonedDate = toZonedTime(date, timeZone);
   return format(zonedDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", { timeZone: "UTC" });
 };
 

@@ -1,5 +1,18 @@
-import { ActionIcon, Button, Group, Table, TextInput } from "@mantine/core";
-import { IconPencil, IconSearch, IconTrash, IconX } from "@tabler/icons-react";
+import {
+  ActionIcon,
+  Button,
+  Group,
+  Pagination,
+  Table,
+  TextInput,
+} from "@mantine/core";
+import {
+  IconArrowsSort,
+  IconPencil,
+  IconSearch,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -15,6 +28,8 @@ interface TableComponentProps {
   msgNoData?: string;
 }
 
+const pageSize = 8;
+
 const TableComponent = ({
   title,
   createView,
@@ -29,17 +44,29 @@ const TableComponent = ({
   const navigate = useNavigate();
   const [filterData, setFilterData] = useState<any>([]);
   const [search, setSearch] = useState<string>("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    setFilterData(data);
+    if (data) {
+      setFilterData(data);
+      setCurrentPage(1);
+    }
   }, [data]);
+
+  const getPaginedData = () => {
+    return filterData?.slice(
+      (currentPage - 1) * pageSize,
+      currentPage * pageSize
+    );
+  };
 
   function getFieldValue(it: any, field: any) {
     return field.split(".").reduce((acc: any, chave: any) => acc?.[chave], it);
   }
 
   const onChangeFilter = (event: any) => {
-    if (event && event.target.value !== "" && filterData && data) {
+    if (event && event.target.value !== "" && data) {
       const valueSearch = event.target.value;
       setSearch(valueSearch);
       const dataFilter = data.filter((it) => {
@@ -49,15 +76,18 @@ const TableComponent = ({
           if (typeof fieldValue === "boolean") {
             fieldValue = fieldValue ? "Sim" : "Não";
           }
-          console.log(values);
           values.push(fieldValue);
         });
-        return values.some((val) => val.toString().includes(valueSearch));
+        return values.some((val) =>
+          val?.toString().toLowerCase().includes(valueSearch.toLowerCase())
+        );
       });
       setFilterData(dataFilter);
+      setCurrentPage(1);
     } else {
       setSearch("");
-      setFilterData(data);
+      setFilterData(data || []);
+      setCurrentPage(1);
     }
   };
 
@@ -74,6 +104,26 @@ const TableComponent = ({
     } else {
       return null;
     }
+  };
+
+  const sortColumn = (field: any) => {
+    const sorted = [...filterData].sort((a: any, b: any) => {
+      let aVal = getFieldValue(a, field);
+      let bVal = getFieldValue(b, field);
+
+      if (!isNaN(Number(aVal)) && !isNaN(Number(bVal))) {
+        aVal = Number(aVal);
+        bVal = Number(bVal);
+      }
+
+      if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setFilterData(sorted);
+    setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    setCurrentPage(1);
   };
 
   return (
@@ -105,69 +155,93 @@ const TableComponent = ({
         )}
       </div>
       {filterData && filterData.length > 0 && (
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              {columns?.map((column) => (
-                <Table.Th>{column.label}</Table.Th>
-              ))}
-              <Table.Th>Ações</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {filterData.map((it: any) => {
-              return (
-                <Table.Tr key={it.id}>
-                  {columns?.map((column) => {
-                    if (column.fnFmt) {
-                      return (
-                        <Table.Td>
-                          {column.fnFmt(getFieldValue(it, column.field))}
-                        </Table.Td>
-                      );
-                    } else {
-                      return (
-                        <Table.Td>{getFieldValue(it, column.field)}</Table.Td>
-                      );
-                    }
-                  })}
-                  <Table.Td>
-                    {isDashboard && dashboardContentFn ? (
-                      <>{dashboardContentFn(it)}</>
-                    ) : (
-                      <div style={{ display: "flex", gap: "5px" }}>
-                        <ActionIcon
-                          variant="filled"
-                          color="blue"
-                          aria-label="Editar"
-                        >
-                          <IconPencil
-                            style={{ width: "70%", height: "70%" }}
-                            stroke={1.5}
-                            onClick={() => updateFn(it.id)}
-                          />
-                        </ActionIcon>
-                        {deleteFn && (
+        <>
+          <Table>
+            <Table.Thead>
+              <Table.Tr>
+                {columns?.map((column) => (
+                  <Table.Th>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0 5px",
+                      }}
+                    >
+                      {column.label}{" "}
+                      <IconArrowsSort
+                        size={14}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => sortColumn(column.field)}
+                      />
+                    </div>
+                  </Table.Th>
+                ))}
+                <Table.Th>Ações</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {getPaginedData().map((it: any) => {
+                return (
+                  <Table.Tr key={it.id}>
+                    {columns?.map((column) => {
+                      if (column.fnFmt) {
+                        return (
+                          <Table.Td>
+                            {column.fnFmt(getFieldValue(it, column.field))}
+                          </Table.Td>
+                        );
+                      } else {
+                        return (
+                          <Table.Td>{getFieldValue(it, column.field)}</Table.Td>
+                        );
+                      }
+                    })}
+                    <Table.Td>
+                      {isDashboard && dashboardContentFn ? (
+                        <>{dashboardContentFn(it)}</>
+                      ) : (
+                        <div style={{ display: "flex", gap: "5px" }}>
                           <ActionIcon
                             variant="filled"
-                            color="red"
-                            aria-label="Excluir"
+                            color="blue"
+                            aria-label="Editar"
                           >
-                            <IconTrash
+                            <IconPencil
                               style={{ width: "70%", height: "70%" }}
                               stroke={1.5}
-                              onClick={() => deleteFn(it.id)}
+                              onClick={() => updateFn(it.id)}
                             />
                           </ActionIcon>
-                        )}
-                      </div>
-                    )}
-                  </Table.Td>
-                </Table.Tr>
-              );
-            })}
-          </Table.Tbody>
-        </Table>
+                          {deleteFn && (
+                            <ActionIcon
+                              variant="filled"
+                              color="red"
+                              aria-label="Excluir"
+                            >
+                              <IconTrash
+                                style={{ width: "70%", height: "70%" }}
+                                stroke={1.5}
+                                onClick={() => deleteFn(it.id)}
+                              />
+                            </ActionIcon>
+                          )}
+                        </div>
+                      )}
+                    </Table.Td>
+                  </Table.Tr>
+                );
+              })}
+            </Table.Tbody>
+          </Table>
+          <Group justify="center" mt="md">
+            <Pagination
+              value={currentPage}
+              onChange={setCurrentPage}
+              total={Math.ceil(filterData.length / pageSize)}
+            />
+          </Group>
+        </>
       )}
       {!filterData ||
         (filterData.length <= 0 && (
