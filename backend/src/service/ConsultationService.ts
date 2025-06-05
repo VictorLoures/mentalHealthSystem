@@ -1,6 +1,8 @@
 import client from "../prismaConfig";
 import { Consultation } from "../model/Consultation";
 import { parseDateAndHourBr } from "../util/util";
+import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 const DEFAULT_SELECT_OBJ = {
   id: true,
@@ -17,6 +19,9 @@ export default class ConsultationService {
   async findById(idConsultation: number) {
     const data = await client.consultation.findFirst({
       where: { id: idConsultation },
+      orderBy: {
+        day: "desc",
+      },
       select: DEFAULT_SELECT_OBJ,
     });
     formatHourSelect(data);
@@ -26,6 +31,9 @@ export default class ConsultationService {
   async findAllByDoctorId(idDoctor: number) {
     const data = await client.consultation.findMany({
       where: { doctor_id: idDoctor },
+      orderBy: {
+        day: "desc",
+      },
       select: DEFAULT_SELECT_OBJ,
     });
     formatHourSelect(data);
@@ -35,6 +43,9 @@ export default class ConsultationService {
   async findAllByPatientId(idPatient: number) {
     const data = await client.consultation.findMany({
       where: { patient_id: idPatient },
+      orderBy: {
+        day: "desc",
+      },
       select: DEFAULT_SELECT_OBJ,
     });
     formatHourSelect(data);
@@ -79,12 +90,61 @@ export default class ConsultationService {
       where: { id: idConsultation },
     });
   }
+
+  async findAllByDoctorIdInDay(idDoctor: number) {
+    const now = new Date();
+    const start = createDate(now, 0);
+    const end = createDate(now, 1);
+
+    const consultations = await client.consultation.findMany({
+      where: {
+        doctor_id: idDoctor,
+        day: {
+          gte: start,
+          lt: end,
+        },
+      },
+      orderBy: {
+        day: "asc",
+      },
+      select: DEFAULT_SELECT_OBJ,
+    });
+    formatHourSelect(consultations);
+
+    return consultations;
+  }
+
+  async payConsultation(idConsultation: number) {
+    await client.consultation.update({
+      where: {
+        id: Number(idConsultation),
+      },
+      data: {
+        paid: true,
+      },
+    });
+  }
 }
 
 const formatHourSelect = (data: any) => {
   if (data && data.length > 0) {
     data.forEach((it) => {
-      it.day = it.day.toLocaleString();
+      const date = new Date(it.day);
+      it.day = formatInTimeZone(date, "UTC", "dd/MM/yyyy HH:mm");
     });
   }
+};
+
+const createDate = (now, day) => {
+  return new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() + day,
+      0,
+      0,
+      0,
+      0
+    )
+  );
 };

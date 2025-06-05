@@ -37,9 +37,7 @@ const PatientSelect = ({
       const fetchPatient = async () => {
         try {
           loading?.show();
-          const res = await api.get(
-            `/findPatientById/${auth?.loggedDoctor?.id}/${selectedPatientId}`
-          );
+          const res = await api.get(`/findPatientById/${selectedPatientId}`);
           const patient = res.data;
           setPatients([
             {

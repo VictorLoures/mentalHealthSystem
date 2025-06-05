@@ -1,23 +1,34 @@
-import { ActionIcon, Button, Group, Table } from "@mantine/core";
+import { modals } from "@mantine/modals";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
+import TableComponent from "../components/TableComponent";
 import { AuthContext } from "../context/AuthContext";
 import { LoadingContext } from "../context/LoadingContext";
-import { formatDateWhitHour, formatToBRL, showSuccess } from "../utils/util";
-import { IconPencil, IconTrash } from "@tabler/icons-react";
-import { modals } from "@mantine/modals";
+import { Consultation } from "../model/Consultation";
+import { formatToBRL, showError, showSuccess } from "../utils/util";
+import { ActionIcon } from "@mantine/core";
+import { IconCoin } from "@tabler/icons-react";
 
-const ConsultationList = () => {
+interface ConsultationListProps {
+  title?: string;
+  isDashboard?: boolean;
+}
+
+const ConsultationList = ({ title, isDashboard }: ConsultationListProps) => {
   const navigate = useNavigate();
   const auth = useContext(AuthContext);
   const loading = useContext(LoadingContext);
 
-  const [consultations, setConsultations] = useState([]);
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
 
   useEffect(() => {
     if (auth?.loggedDoctor?.id) {
-      getConsultations();
+      if (isDashboard) {
+        getConsultationsInDay();
+      } else {
+        getConsultations();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -26,6 +37,17 @@ const ConsultationList = () => {
     loading?.show();
     api
       .get(`/findAllByDoctorId/${auth?.loggedDoctor?.id}`)
+      .then((response) => {
+        loading?.hide();
+        setConsultations(response.data);
+      })
+      .catch(() => loading?.hide());
+  };
+
+  const getConsultationsInDay = () => {
+    loading?.show();
+    api
+      .get(`/findAllByDoctorIdInDay/${auth?.loggedDoctor?.id}`)
       .then((response) => {
         loading?.hide();
         setConsultations(response.data);
@@ -62,73 +84,77 @@ const ConsultationList = () => {
 
   const formatBooleanColumn = (value: boolean) => (value ? "Sim" : "Não");
 
+  const payConsultation = (id: string, paid: boolean) => {
+    if (paid) {
+      showError("A consulta já foi paga!");
+    } else {
+      api.get(`/payConsultation/${id}`);
+      const consultationsUpdated: Consultation[] = [];
+      consultations.forEach((con: Consultation) => {
+        if (Number(con.id) === Number(id)) {
+          con.paid = true;
+        }
+        consultationsUpdated.push(con);
+      });
+      setConsultations(consultationsUpdated);
+      showSuccess("Baixa efetuada com sucesso!");
+    }
+  };
+
+  const dashboardContentFn = (obj: any) => {
+    return (
+      <ActionIcon
+        variant="filled"
+        color="green"
+        aria-label="Dar baixa no valor"
+      >
+        <IconCoin
+          style={{ width: "70%", height: "70%" }}
+          stroke={1.5}
+          onClick={() => payConsultation(obj.id, obj.paid)}
+        />
+      </ActionIcon>
+    );
+  };
+
+  const columns: any[] = [
+    {
+      label: "Paciente",
+      field: "patient.name",
+    },
+    {
+      label: "Dia e hora",
+      field: "day",
+    },
+    {
+      label: "Preço",
+      field: "price",
+      fnFmt: formatToBRL,
+    },
+    {
+      label: "Já foi pago",
+      field: "paid",
+      fnFmt: formatBooleanColumn,
+    },
+    {
+      label: "É presencial?",
+      field: "online",
+      fnFmt: formatBooleanColumn,
+    },
+  ];
+
   return (
-    <>
-      <h3>Suas consultas</h3>
-      {consultations && consultations.length > 0 && (
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Paciente</Table.Th>
-              <Table.Th>Dia e hora</Table.Th>
-              <Table.Th>Preço</Table.Th>
-              <Table.Th>Já foi Pago?</Table.Th>
-              <Table.Th>É presencial?</Table.Th>
-              <Table.Th>Ações</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {consultations.map((it: any) => {
-              return (
-                <Table.Tr key={it.id}>
-                  <Table.Td>{it.patient.name}</Table.Td>
-                  <Table.Td>{formatDateWhitHour(it.day)}</Table.Td>
-                  <Table.Td>{formatToBRL(it.price)}</Table.Td>
-                  <Table.Td>{formatBooleanColumn(it.paid)}</Table.Td>
-                  <Table.Td>{formatBooleanColumn(it.online)}</Table.Td>
-                  <Table.Td>
-                    <div style={{ display: "flex", gap: "5px" }}>
-                      <ActionIcon
-                        variant="filled"
-                        color="blue"
-                        aria-label="Editar"
-                      >
-                        <IconPencil
-                          style={{ width: "70%", height: "70%" }}
-                          stroke={1.5}
-                          onClick={() => updateConsultation(it.id)}
-                        />
-                      </ActionIcon>
-                      <ActionIcon
-                        variant="filled"
-                        color="red"
-                        aria-label="Excluir"
-                      >
-                        <IconTrash
-                          style={{ width: "70%", height: "70%" }}
-                          stroke={1.5}
-                          onClick={() => deleteConsultation(it.id)}
-                        />
-                      </ActionIcon>
-                    </div>
-                  </Table.Td>
-                </Table.Tr>
-              );
-            })}
-          </Table.Tbody>
-        </Table>
-      )}
-      {!consultations ||
-        (consultations.length <= 0 && <h3>Você não possui consultas</h3>)}
-      <Group justify="flex-end" mt="md">
-        <Button color="red" onClick={() => navigate("/")}>
-          Voltar a página inicial
-        </Button>
-        <Button color="green" onClick={() => navigate("/createConsultation")}>
-          Incluir
-        </Button>
-      </Group>
-    </>
+    <TableComponent
+      title={title ? title : "Consultas"}
+      createView="/createConsultation"
+      data={consultations}
+      columns={columns}
+      isDashboard={isDashboard}
+      dashboardContentFn={dashboardContentFn}
+      updateFn={updateConsultation}
+      deleteFn={deleteConsultation}
+      msgNoData="Você não possui consultas"
+    />
   );
 };
 

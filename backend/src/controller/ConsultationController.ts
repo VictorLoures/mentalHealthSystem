@@ -37,4 +37,19 @@ export default class ConsultationController {
       await new ConsultationService().delete(Number(req.params.id))
     );
   }
+
+  async findAllByDoctorIdInDay(req: Request, res: Response) {
+    return res.json(
+      await new ConsultationService().findAllByDoctorIdInDay(
+        Number(req.params.idDoctor)
+      )
+    );
+  }
+
+  async payConsultation(req: Request, res: Response) {
+    await new ConsultationService().payConsultation(
+      Number(req.params.idConsultation)
+    );
+    return res.status(200).json(null);
+  }
 }

@@ -1,7 +1,11 @@
 import { Button, Checkbox, Group, TextInput } from "@mantine/core";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { useNavigate, useParams } from "react-router-dom";
-import { CAMPO_OBRIGATORIO, showError } from "../utils/util";
+import {
+  CAMPO_OBRIGATORIO,
+  formatDateWhitHourToSend,
+  showError,
+} from "../utils/util";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Consultation } from "../model/Consultation";
@@ -39,7 +43,7 @@ const CreateConsultation = () => {
           const data = response.data;
           form.setValues({
             id: data.id,
-            day: data.day,
+            day: new Date(data.day.replace("Z", "")).toString(),
             paid: data.paid,
             online: data.online,
           });
@@ -72,6 +76,7 @@ const CreateConsultation = () => {
         },
       };
 
+      consultationToSend.day = formatDateWhitHourToSend(consultationToSend.day);
       if (id) {
         consultationToSend.id = idConsultation;
         update(
@@ -122,6 +127,11 @@ const CreateConsultation = () => {
           maxLength={150}
         />
       </div>
+      <PatientSelect
+        setSelectedPatientId={setSelectedPatientId}
+        selectedPatientId={selectedPatientId}
+        form={form}
+      />
       <DateTimePicker
         label="Dia e hora"
         placeholder="Dia e hora da consulta"
@@ -148,16 +158,11 @@ const CreateConsultation = () => {
         key={form.key("online")}
         {...form.getInputProps("online", { type: "checkbox" })}
       />
-      <PatientSelect
-        setSelectedPatientId={setSelectedPatientId}
-        selectedPatientId={selectedPatientId}
-        form={form}
-      />
       <Group justify="flex-end" mt="md">
         <Button color="red" onClick={() => navigate("/consultations")}>
           Cancelar
         </Button>
-        <Button type="submit">Cadastrar</Button>
+        <Button type="submit">{!id ? "Cadastrar" : "Salvar"}</Button>
       </Group>
     </form>
   );

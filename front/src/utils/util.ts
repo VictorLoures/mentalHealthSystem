@@ -1,4 +1,5 @@
 import { notifications } from "@mantine/notifications";
+import { toZonedTime, format } from "date-fns-tz";
 
 export const TOKEN = "doctor";
 
@@ -71,22 +72,28 @@ export const formatDate = (isoDate: string): string => {
   });
 };
 
-export const formatDateWhitHourToSend = (isoDate: string): string => {
-  return new Date(isoDate)
-    .toLocaleString("pt-BR", {
-      timeZone: "UTC",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })
-    .replace(",", "");
-};
+export const formatDateWhitHourToSend = (
+  input: string | Date | undefined
+): string => {
+  const timeZone = "America/Sao_Paulo";
 
-export const formatDateWhitHour = (dateStr: string): string => {
-  return dateStr.replace(",", " às");
+  let date: Date;
+
+  if (input instanceof Date) {
+    date = input;
+  } else if (typeof input === "string") {
+    const sanitized = input.includes("T") ? input : input.replace(" ", "T");
+    const parsed = new Date(sanitized);
+    if (isNaN(parsed.getTime())) {
+      throw new Error("Formato de data inválido");
+    }
+    date = parsed;
+  } else {
+    throw new Error("Tipo de dado inválido para data");
+  }
+
+  const zonedDate = toZonedTime(date, timeZone);
+  return format(zonedDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", { timeZone: "UTC" });
 };
 
 export const formatCep = (cep: string) => {

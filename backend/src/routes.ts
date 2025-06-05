@@ -66,6 +66,18 @@ routes.get(
   new PatientController().findPatientByQuery
 );
 
+routes.get(
+  "/findAllByDoctorIdInDay/:idDoctor",
+  isAuthenticated,
+  new ConsultationController().findAllByDoctorIdInDay
+);
+
+routes.get(
+  "/payConsultation/:idConsultation",
+  isAuthenticated,
+  new ConsultationController().payConsultation
+);
+
 // POST
 routes.post("/createPatient", isAuthenticated, new PatientController().create);
 routes.post(
