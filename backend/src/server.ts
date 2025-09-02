@@ -1,6 +1,8 @@
+import "reflect-metadata";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { routes } from "./routes";
+import { initDB } from "./configBd/data-source";
 
 const app = express();
 app.use(express.json());
@@ -17,4 +19,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     .json({ status: "error", message: "Internal server error" });
 });
 
-app.listen(3333, () => console.log("Server online"));
+initDB().then(() => {
+  app.listen(3333, () => console.log("Server online"));
+});

@@ -42,7 +42,7 @@ export default class DoctorService {
       throw new Error(errors.join("\n"));
     }
 
-    const idAdress = (await new AddressService().create(doctor.address)).id;
+    const idAdress = await new AddressService().createOrUpdate(doctor.address);
     const passwordHash = await hash(doctor.password, 8);
     const { id, consultations, patients, address, ...dataSave } = doctor;
     const data = client.doctor.create({
@@ -86,7 +86,7 @@ export default class DoctorService {
       dataToPersist.password = passwordHash;
     }
 
-    new AddressService().update(doctor.address);
+    new AddressService().createOrUpdate(doctor.address);
     const data = client.doctor.update({
       where: {
         id: idDoctor,

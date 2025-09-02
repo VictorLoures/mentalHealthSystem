@@ -1,32 +1,18 @@
-import { Adress } from "../model/Adress";
-import client from "../prismaConfig";
+import { Repository } from "typeorm";
+import { AppDataSource } from "../configBd/data-source";
+import { AdressDTO } from "../dto/AdressDTO";
+import { Address } from "../model/Adress";
 
 export default class AddressService {
-  async create(adress: Adress) {
-    const { ...dataAdress } = adress;
-    const idAdress = client.address.create({
-      data: {
-        ...dataAdress,
-      },
-      select: {
-        id: true,
-      },
-    });
+  private readonly repo: Repository<Address>;
 
-    return idAdress;
+  constructor() {
+    this.repo = AppDataSource.getRepository(Address);
   }
 
-  async update(adress: Adress) {
-    const { id, ...dataAdress } = adress;
-    const idAdress = client.address.update({
-      where: {
-        id: Number(id),
-      },
-      data: {
-        ...dataAdress,
-      },
-    });
-
-    return idAdress;
+  async createOrUpdate(adressDTO: AdressDTO) {
+    const adress = this.repo.create(adressDTO);
+    const result = await this.repo.save(adress);
+    return result.id;
   }
 }

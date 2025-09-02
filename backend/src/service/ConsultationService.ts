@@ -3,6 +3,9 @@ import { Consultation } from "../model/Consultation";
 import { parseDateAndHourBr } from "../util/util";
 import { format } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
+import { Repository } from "typeorm";
+import { AppDataSource } from "../configBd/data-source";
+import { ConsultationDTO } from "../dto/ConsultationDTO";
 
 const DEFAULT_SELECT_OBJ = {
   id: true,
@@ -16,79 +19,79 @@ const DEFAULT_SELECT_OBJ = {
 };
 
 export default class ConsultationService {
+  private readonly repo: Repository<Consultation>;
+
+  constructor() {
+    this.repo = AppDataSource.getRepository(Consultation);
+  }
+
   async findById(idConsultation: number) {
-    const data = await client.consultation.findFirst({
+    const data = await this.repo.findOne({
       where: { id: idConsultation },
-      orderBy: {
-        day: "desc",
-      },
-      select: DEFAULT_SELECT_OBJ,
     });
     formatHourSelect(data);
     return data;
   }
 
   async findAllByDoctorId(idDoctor: number) {
-    const data = await client.consultation.findMany({
-      where: { doctor_id: idDoctor },
-      orderBy: {
-        day: "desc",
-      },
-      select: DEFAULT_SELECT_OBJ,
+    const data = await this.repo.findOne({
+      where: { user: { id: idDoctor } },
     });
     formatHourSelect(data);
     return data;
   }
 
   async findAllByPatientId(idPatient: number) {
-    const data = await client.consultation.findMany({
-      where: { patient_id: idPatient },
-      orderBy: {
-        day: "desc",
-      },
-      select: DEFAULT_SELECT_OBJ,
+    const data = await this.repo.findOne({
+      where: { patient: { id: idPatient } },
     });
     formatHourSelect(data);
     return data;
   }
 
-  async create(consultation: Consultation) {
-    const { id, user, patient, ...dataSave } = consultation;
-    const data = await client.consultation.create({
-      data: {
-        ...dataSave,
-        day: parseDateAndHourBr(consultation.day),
-        user: {
-          connect: { id: Number(user.id) },
-        },
-        patient: {
-          connect: { id: Number(patient.id) },
-        },
-      },
-    });
+  async createOrUpdate(consultationDTO: ConsultationDTO) {
+    //vr sobre data, na teoria ja relaciona usuario e paciente
+    const consultation = this.repo.create(consultationDTO);
+    const data = await this.repo.save(consultation);
     formatHourSelect(data);
     return data;
   }
 
-  async update(consultation: Consultation) {
-    const { id, user, patient, ...dataSave } = consultation;
-    const data = await client.consultation.update({
-      where: {
-        id: Number(id),
-      },
-      data: {
-        ...dataSave,
-        day: parseDateAndHourBr(consultation.day),
-      },
-    });
-    formatHourSelect(data);
-    return data;
-  }
+  // async create(consultation: Consultation) {
+  //   const { id, user, patient, ...dataSave } = consultation;
+  //   const data = await client.consultation.create({
+  //     data: {
+  //       ...dataSave,
+  //       day: parseDateAndHourBr(consultation.day),
+  //       user: {
+  //         connect: { id: Number(user.id) },
+  //       },
+  //       patient: {
+  //         connect: { id: Number(patient.id) },
+  //       },
+  //     },
+  //   });
+  //   formatHourSelect(data);
+  //   return data;
+  // }
+
+  // async update(consultation: Consultation) {
+  //   const { id, user, patient, ...dataSave } = consultation;
+  //   const data = await client.consultation.update({
+  //     where: {
+  //       id: Number(id),
+  //     },
+  //     data: {
+  //       ...dataSave,
+  //       day: parseDateAndHourBr(consultation.day),
+  //     },
+  //   });
+  //   formatHourSelect(data);
+  //   return data;
+  // }
 
   async delete(idConsultation: number) {
-    return client.consultation.delete({
-      where: { id: idConsultation },
-    });
+    return this.repo.delete(idConsultation);
   }
 
   async findAllByDoctorIdInDay(idDoctor: number) {

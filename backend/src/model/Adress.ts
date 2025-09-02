@@ -1,13 +1,36 @@
-import { Doctor } from "./Doctor";
-import { Patient } from "./Patient";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from "typeorm";
 
-export interface Adress {
-  id: number;
-  cep: string;
-  state: string;
-  city: string;
-  street: string;
-  neighborhood: string;
+@Entity({ name: "address" })
+export class Address {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({ type: "varchar", length: 8 })
+  cep!: string;
+
+  @Column({ type: "varchar", length: 2 })
+  state!: string;
+
+  @Column({ type: "varchar", length: 80 })
+  city!: string;
+
+  @Column({ type: "varchar", length: 150 })
+  street!: string;
+
+  @Column({ type: "varchar", length: 150 })
+  neighborhood!: string;
+
+  @Column({ type: "varchar", length: 150, nullable: true })
   complement?: string;
+
+  @Column({ type: "varchar", length: 30, nullable: true })
   number?: string;
+
+  @CreateDateColumn({ name: "created_at" })
+  createdAt!: Date;
 }
