@@ -1,7 +1,7 @@
 import { Repository } from "typeorm";
-import { AppDataSource } from "../configBd/data-source";
 import { AdressDTO } from "../dto/AdressDTO";
 import { Address } from "../model/Adress";
+import { AppDataSource } from "../server";
 
 export default class AddressService {
   private readonly repo: Repository<Address>;

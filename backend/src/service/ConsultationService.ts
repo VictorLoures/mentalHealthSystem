@@ -4,8 +4,8 @@ import { parseDateAndHourBr } from "../util/util";
 import { format } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 import { Repository } from "typeorm";
-import { AppDataSource } from "../configBd/data-source";
 import { ConsultationDTO } from "../dto/ConsultationDTO";
+import { AppDataSource } from "../server";
 
 const DEFAULT_SELECT_OBJ = {
   id: true,

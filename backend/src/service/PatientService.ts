@@ -42,7 +42,7 @@ export default class PatientService {
       throw new Error(errors.join("\n"));
     }
 
-    const idAdress = (await new AddressService().create(patient.address)).id;
+    const idAdress = await new AddressService().createOrUpdate(patient.address);
     const { id, address, consultations, doctor, ...dataSave } = patient;
     const data = client.patient.create({
       data: {
@@ -74,7 +74,7 @@ export default class PatientService {
     if (errors.length > 0) {
       throw new Error(errors.join("\n"));
     }
-    new AddressService().update(patient.address);
+    new AddressService().createOrUpdate(patient.address);
     const data = client.patient.update({
       where: {
         id: idPatient,
