@@ -1,22 +1,9 @@
-import client from "../prismaConfig";
 import { Consultation } from "../model/Consultation";
 import { parseDateAndHourBr } from "../util/util";
-import { format } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
-import { Repository } from "typeorm";
+import { Between, Repository } from "typeorm";
 import { ConsultationDTO } from "../dto/ConsultationDTO";
-import { AppDataSource } from "../server";
-
-const DEFAULT_SELECT_OBJ = {
-  id: true,
-  day: true,
-  price: true,
-  paid: true,
-  online: true,
-  user: true,
-  patient: true,
-  createdAt: true,
-};
+import { AppDataSource } from "../../ormconfig";
 
 export default class ConsultationService {
   private readonly repo: Repository<Consultation>;
@@ -50,45 +37,12 @@ export default class ConsultationService {
   }
 
   async createOrUpdate(consultationDTO: ConsultationDTO) {
-    //vr sobre data, na teoria ja relaciona usuario e paciente
-    const consultation = this.repo.create(consultationDTO);
+    const consultation: Consultation = this.repo.create(consultationDTO);
+    consultation.day = parseDateAndHourBr(consultationDTO.day);
     const data = await this.repo.save(consultation);
     formatHourSelect(data);
     return data;
   }
-
-  // async create(consultation: Consultation) {
-  //   const { id, user, patient, ...dataSave } = consultation;
-  //   const data = await client.consultation.create({
-  //     data: {
-  //       ...dataSave,
-  //       day: parseDateAndHourBr(consultation.day),
-  //       user: {
-  //         connect: { id: Number(user.id) },
-  //       },
-  //       patient: {
-  //         connect: { id: Number(patient.id) },
-  //       },
-  //     },
-  //   });
-  //   formatHourSelect(data);
-  //   return data;
-  // }
-
-  // async update(consultation: Consultation) {
-  //   const { id, user, patient, ...dataSave } = consultation;
-  //   const data = await client.consultation.update({
-  //     where: {
-  //       id: Number(id),
-  //     },
-  //     data: {
-  //       ...dataSave,
-  //       day: parseDateAndHourBr(consultation.day),
-  //     },
-  //   });
-  //   formatHourSelect(data);
-  //   return data;
-  // }
 
   async delete(idConsultation: number) {
     return this.repo.delete(idConsultation);
@@ -99,18 +53,15 @@ export default class ConsultationService {
     const start = createDate(now, 0);
     const end = createDate(now, 1);
 
-    const consultations = await client.consultation.findMany({
+    const consultations = await this.repo.find({
       where: {
-        doctor_id: idDoctor,
-        day: {
-          gte: start,
-          lt: end,
-        },
+        user: { id: idDoctor },
+        day: Between(start, end),
       },
-      orderBy: {
-        day: "asc",
+      order: {
+        day: "ASC",
       },
-      select: DEFAULT_SELECT_OBJ,
+      relations: ["patient"],
     });
     formatHourSelect(consultations);
 
@@ -118,14 +69,7 @@ export default class ConsultationService {
   }
 
   async payConsultation(idConsultation: number) {
-    await client.consultation.update({
-      where: {
-        id: Number(idConsultation),
-      },
-      data: {
-        paid: true,
-      },
-    });
+    this.repo.update(idConsultation, { paid: true });
   }
 }
 

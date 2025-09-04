@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -25,22 +26,30 @@ export class Patient {
   phoneNumber!: string;
 
   @Column({ type: "date" })
-  dateBirth!: string;
+  dateBirth!: Date;
 
   @Column({ type: "varchar", length: 11, unique: true })
   cpf!: string;
 
-  @Column({ type: "varchar", length: 20, unique: true })
-  crpNumber!: string;
+  @Column({ type: "boolean" })
+  minor!: boolean;
+
+  @Column({ type: "varchar", length: 150, nullable: true })
+  nameResponsible?: string;
+
+  @Column({ type: "varchar", length: 15, nullable: true })
+  phoneNumberResponsible?: string;
 
   @OneToOne(() => Address, { cascade: true, nullable: true })
   @JoinColumn()
   address?: Address;
 
   @OneToMany(() => Consultation, (consultation) => consultation.user)
-  consultations!: Consultation[];
+  consultations?: Consultation[];
 
-  @OneToOne(() => Doctor, { cascade: true, nullable: true })
-  @JoinColumn()
+  @ManyToOne(() => Doctor, (doctor) => doctor.patients, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
   doctor?: Doctor;
 }

@@ -7,6 +7,7 @@ import {
   ManyToMany,
   JoinColumn,
   JoinTable,
+  ManyToOne,
 } from "typeorm";
 import { Address } from "./Adress";
 import { Consultation } from "./Consultation";
@@ -30,7 +31,7 @@ export class Doctor {
   phoneNumber!: string;
 
   @Column({ type: "date" })
-  dateBirth!: string;
+  dateBirth!: Date;
 
   @Column({ type: "varchar", length: 11, unique: true })
   cpf!: string;
@@ -45,7 +46,9 @@ export class Doctor {
   @OneToMany(() => Consultation, (consultation) => consultation.user)
   consultations!: Consultation[];
 
-  @ManyToMany(() => Patient, (patient) => patient.doctor, { cascade: true })
+  @OneToMany(() => Patient, (patient) => patient.doctor, {
+    cascade: ["insert", "update"],
+  })
   @JoinTable()
   patients?: Patient[];
 }

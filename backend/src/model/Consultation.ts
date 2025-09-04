@@ -2,8 +2,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToOne,
   JoinColumn,
+  ManyToOne,
 } from "typeorm";
 import { Doctor } from "./Doctor";
 import { Patient } from "./Patient";
@@ -14,22 +14,22 @@ export class Consultation {
   id!: number;
 
   @Column({ type: "date" })
-  day!: string;
+  day!: Date;
 
   @Column({ type: "bigint" })
   price!: number;
 
-  @Column({ type: "boolean", length: 15 })
+  @Column({ type: "boolean" })
   paid!: boolean;
 
   @Column({ type: "boolean" })
   online!: boolean;
 
-  @OneToOne(() => Doctor, { cascade: true, nullable: true })
+  @ManyToOne(() => Doctor, { cascade: true, nullable: true })
   @JoinColumn()
   user?: Doctor;
 
-  @OneToOne(() => Patient, { cascade: true, nullable: true })
+  @ManyToOne(() => Patient, { cascade: true, nullable: true })
   @JoinColumn()
   patient?: Patient;
 }

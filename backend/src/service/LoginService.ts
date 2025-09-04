@@ -1,14 +1,19 @@
 import { LoginDTO } from "../dto/LoginDTO";
-import client from "../prismaConfig";
 import { compare } from "bcryptjs";
 import { decode, sign } from "jsonwebtoken";
+import { AppDataSource } from "../../ormconfig";
+import { Repository } from "typeorm";
+import { Doctor } from "../model/Doctor";
 
 export default class LoginService {
+  private readonly repo: Repository<Doctor>;
+
+  constructor() {
+    this.repo = AppDataSource.getRepository(Doctor);
+  }
   async login({ login, password }: LoginDTO) {
-    const user = await client.doctor.findFirst({
-      where: {
-        OR: [{ email: login }, { cpf: login }, { crpNumber: login }],
-      },
+    const user = await this.repo.findOne({
+      where: [{ email: login }, { cpf: login }, { crpNumber: login }],
     });
 
     if (!user) {

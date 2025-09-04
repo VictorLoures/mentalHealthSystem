@@ -2,8 +2,7 @@ import "reflect-metadata";
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { routes } from "./routes";
-import { DataSource } from "typeorm";
-import config from "../ormconfig";
+import { AppDataSource } from "../ormconfig";
 
 const app = express();
 app.use(express.json());
@@ -20,6 +19,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     .json({ status: "error", message: "Internal server error" });
 });
 
-export const AppDataSource = new DataSource(config);
-
-app.listen(3333, null);
+app.listen(3333, () => {
+  AppDataSource.initialize();
+});

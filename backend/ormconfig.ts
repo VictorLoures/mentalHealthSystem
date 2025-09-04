@@ -1,19 +1,14 @@
-import { DataSourceOptions } from "typeorm";
+import "reflect-metadata";
+import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
 
 dotenv.config();
 
-const config: DataSourceOptions = {
+export const AppDataSource = new DataSource({
   type: "postgres",
-  host: "localhost",
-  port: 5432,
-  username: "postgres",
-  password: "masterkey",
-  database: process.env.DATABASE_URL,
+  url: process.env.DATABASE_URL,
   synchronize: false,
   logging: true,
-  entities: [__dirname + "/model/*.{ts,js}"], // rever
+  entities: ["src/model/*.ts"],
   migrations: ["src/migrations/**/*.ts"],
-};
-
-export default config;
+});
