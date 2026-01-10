@@ -1,126 +1,96 @@
 import { Doctor } from "../model/Doctor";
-import client from "../prismaConfig";
 import { hash } from "bcryptjs";
-import AddressService from "./AddressService";
 import { parseDateBr } from "../util/util";
-
-const DEFAULT_SELECT_OBJ = {
-  id: true,
-  name: true,
-  email: true,
-  phoneNumber: true,
-  dateBirth: true,
-  cpf: true,
-  crpNumber: true,
-  createdAt: true,
-  address: true,
-  consultations: true,
-  patients: true,
-};
+import { Repository } from "typeorm";
+import { DoctorDTO } from "../dto/DoctorDTO";
+import { AppDataSource } from "../../ormconfig";
+import { validateField } from "./ServiceUtil";
 
 export default class DoctorService {
+  private readonly repo: Repository<Doctor>;
+
+  constructor() {
+    this.repo = AppDataSource.getRepository(Doctor);
+  }
+
   async findAll() {
-    return client.doctor.findMany({
-      select: DEFAULT_SELECT_OBJ,
-    });
+    return this.repo.find();
   }
 
   async findById(idDoctor: number) {
-    return client.doctor.findFirst({
-      where: { id: idDoctor },
-      select: { ...DEFAULT_SELECT_OBJ, patients: false, consultations: false },
-    });
+    return this.repo.findOneBy({ id: idDoctor });
   }
 
-  async create(doctor: Doctor) {
+  async create(doctorDTO: DoctorDTO) {
     const errors: string[] = [];
-    await validateField("email", doctor.email, "e-mail", errors);
-    await validateField("cpf", doctor.cpf, "CPF", errors);
-    await validateField("crpNumber", doctor.crpNumber, "Número do CRP", errors);
+    await validateField(
+      "email",
+      doctorDTO.email,
+      "e-mail",
+      errors,
+      false,
+      null,
+      this.repo
+    );
+    await validateField(
+      "cpf",
+      doctorDTO.cpf,
+      "CPF",
+      errors,
+      false,
+      null,
+      this.repo
+    );
+    await validateField(
+      "crpNumber",
+      doctorDTO.crpNumber,
+      "Número do CRP",
+      errors,
+      false,
+      null,
+      this.repo
+    );
 
     if (errors.length > 0) {
       throw new Error(errors.join("\n"));
     }
 
-    const idAdress = (await new AddressService().create(doctor.address)).id;
-    const passwordHash = await hash(doctor.password, 8);
-    const { id, consultations, patients, address, ...dataSave } = doctor;
-    const data = client.doctor.create({
-      data: {
-        ...dataSave,
-        dateBirth: parseDateBr(doctor.dateBirth),
-        password: passwordHash,
-        address: {
-          connect: { id: idAdress },
-        },
-      },
-    });
-
-    return data;
+    const doctor: Doctor = this.repo.create(doctorDTO);
+    doctor.password = await hash(doctorDTO.password, 8);
+    doctor.dateBirth = parseDateBr(doctorDTO.dateBirth);
+    return await this.repo.save(doctor);
   }
 
-  async update(doctor: Doctor) {
+  async update(doctorDTO: DoctorDTO) {
     const errors: string[] = [];
-    const { id, consultations, patients, address, password, ...dataSave } =
-      doctor;
-    const idDoctor = Number(id);
+    const idDoctor = Number(doctorDTO.id);
     await validateField(
       "email",
-      doctor.email,
+      doctorDTO.email,
       "e-mail",
       errors,
       true,
-      idDoctor
+      idDoctor,
+      this.repo
     );
-    await validateField("cpf", doctor.cpf, "CPF", errors, true, idDoctor);
+    await validateField(
+      "cpf",
+      doctorDTO.cpf,
+      "CPF",
+      errors,
+      true,
+      idDoctor,
+      this.repo
+    );
     if (errors.length > 0) {
       throw new Error(errors.join("\n"));
     }
 
-    const dataToPersist: any = {
-      ...dataSave,
-      dateBirth: parseDateBr(doctor.dateBirth),
-    };
-    if (password) {
-      const passwordHash = await hash(doctor.password, 8);
-      dataToPersist.password = passwordHash;
+    const doctor: Doctor = this.repo.create(doctorDTO);
+    if (doctorDTO.password) {
+      doctor.password = await hash(doctorDTO.password, 8);
     }
-
-    new AddressService().update(doctor.address);
-    const data = client.doctor.update({
-      where: {
-        id: idDoctor,
-      },
-      data: dataToPersist,
-    });
-
-    return data;
-  }
-}
-
-async function validateField(
-  fieldBd: any,
-  field: any,
-  fieldMessage: string,
-  errors: string[],
-  isEdit: boolean = false,
-  id: number = null
-) {
-  const whereObj: any = {
-    [fieldBd]: field,
-  };
-  if (isEdit && id) {
-    whereObj.id = {
-      not: id,
-    };
-  }
-  let existentDoctor = await client.doctor.findFirst({
-    where: whereObj,
-    select: {
-      id: true,
-    },
-  });
-  if (existentDoctor) {
-    errors.push(`Já existe um pisicólogo cadastrado com este ${fieldMessage}`);
+    doctor.dateBirth = parseDateBr(doctorDTO.dateBirth);
+    return await this.repo.save(doctor);
   }
 }

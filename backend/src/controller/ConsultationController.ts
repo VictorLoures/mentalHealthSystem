@@ -25,11 +25,11 @@ export default class ConsultationController {
   }
 
   async create(req: Request, res: Response) {
-    return res.json(await new ConsultationService().create(req.body));
+    return res.json(await new ConsultationService().createOrUpdate(req.body));
   }
 
   async update(req: Request, res: Response) {
-    return res.json(await new ConsultationService().update(req.body));
+    return res.json(await new ConsultationService().createOrUpdate(req.body));
   }
 
   async delete(req: Request, res: Response) {

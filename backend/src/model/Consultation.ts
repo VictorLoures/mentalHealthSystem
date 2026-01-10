@@ -1,12 +1,35 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  JoinColumn,
+  ManyToOne,
+} from "typeorm";
 import { Doctor } from "./Doctor";
 import { Patient } from "./Patient";
 
-export interface Consultation {
-  id: number;
-  day: string;
-  price: number;
-  paid: boolean;
-  online: boolean;
-  user: Doctor;
-  patient: Patient;
+@Entity({ name: "patient" })
+export class Consultation {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Column({ type: "date" })
+  day!: Date;
+
+  @Column({ type: "bigint" })
+  price!: number;
+
+  @Column({ type: "boolean" })
+  paid!: boolean;
+
+  @Column({ type: "boolean" })
+  online!: boolean;
+
+  @ManyToOne(() => Doctor, { cascade: true, nullable: true })
+  @JoinColumn()
+  user?: Doctor;
+
+  @ManyToOne(() => Patient, { cascade: true, nullable: true })
+  @JoinColumn()
+  patient?: Patient;
 }
